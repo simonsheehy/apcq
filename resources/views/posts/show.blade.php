@@ -7,7 +7,7 @@
     <header class="mb-8">
         <h1 class="text-3xl md:text-4xl font-bold text-stone-900 mb-4">{{ $post->title }}</h1>
         <p class="text-stone-600">
-            {{ $post->published_at?->translatedFormat('d F Y') }} — {{ $post->author->name }}
+            {{ $post->published_at?->translatedFormat('d F Y') }}
         </p>
     </header>
 

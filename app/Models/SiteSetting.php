@@ -11,6 +11,9 @@ class SiteSetting extends Model
         'footer_address',
         'footer_phone',
         'footer_email',
+        'footer_facebook_url',
+        'footer_linkedin_url',
+        'footer_youtube_url',
     ];
 
     protected static ?SiteSetting $instance = null;

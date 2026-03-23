@@ -9,9 +9,15 @@
     @if($members->isNotEmpty())
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($members as $member)
-                <div class="bg-white rounded-lg shadow-sm border border-stone-200 p-6 hover:shadow-md transition">
+                <div class="bg-white rounded-lg shadow-none border border-stone-200 p-6 hover:shadow-xl transition">
+                    @if($member->getFirstMediaUrl('logo'))
+                        <img
+                            src="{{ $member->getFirstMediaUrl('logo', 'thumb') }}"
+                            alt="Logo {{ $member->cinema_name }}"
+                            class="h-12 w-auto object-contain mb-4"
+                        >
+                    @endif
                     <h3 class="font-semibold text-stone-900 text-lg mb-1">{{ $member->name }}</h3>
-                    <p class="text-apcq font-medium mb-2">{{ $member->cinema_name }}</p>
                     @if($member->city)
                         <p class="text-stone-600 text-sm mb-2">{{ $member->city }}</p>
                     @endif

@@ -26,7 +26,7 @@
                                 </a>
                             </h2>
                             <p class="text-stone-600 text-sm mb-3">
-                                {{ $post->published_at?->translatedFormat('d F Y') }} — {{ $post->author->name }}
+                                {{ $post->published_at?->translatedFormat('d F Y') }}
                             </p>
                             @if($post->excerpt)
                                 <p class="text-stone-700 mb-4">{{ $post->excerpt }}</p>

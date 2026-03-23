@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Members\Schemas;
 
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -46,6 +47,12 @@ class MemberForm
                                     ->label('Site web')
                                     ->url()
                                     ->maxLength(255),
+                                SpatieMediaLibraryFileUpload::make('logo')
+                                    ->label('Logo')
+                                    ->collection('logo')
+                                    ->image()
+                                    ->imageEditor()
+                                    ->maxSize(2048),
                             ])
                             ->columns(2),
                         Section::make('Affichage')

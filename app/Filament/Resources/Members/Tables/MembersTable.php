@@ -8,6 +8,8 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -17,15 +19,20 @@ class MembersTable
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('name')
+                SpatieMediaLibraryImageColumn::make('logo')
+                    ->label('Logo')
+                    ->collection('logo')
+                    ->conversion('thumb')
+                    ->square(),
+                TextColumn::make('name')
                     ->label('Nom')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('cinema_name')
+                TextColumn::make('cinema_name')
                     ->label('Cinéma')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('city')
+                TextColumn::make('city')
                     ->label('Ville')
                     ->sortable(),
             ])

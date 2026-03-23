@@ -3,10 +3,10 @@
 namespace App\Filament\Pages\Settings;
 
 use App\Models\SiteSetting;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Section;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\CanUseDatabaseTransactions;
 use Filament\Pages\Page;
@@ -14,8 +14,9 @@ use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use BackedEnum;
+use Filament\Support\Enums\Alignment;
 use Filament\Support\Exceptions\Halt;
 use Filament\Support\Icons\Heroicon;
 
@@ -85,6 +86,23 @@ class ParametresDuSite extends Page
                             ->maxLength(255),
                     ])
                     ->columns(2),
+                Section::make('Médias sociaux')
+                    ->description('Liens affichés dans le pied de page')
+                    ->schema([
+                        TextInput::make('footer_facebook_url')
+                            ->label('URL Facebook')
+                            ->url()
+                            ->maxLength(255),
+                        TextInput::make('footer_linkedin_url')
+                            ->label('URL LinkedIn')
+                            ->url()
+                            ->maxLength(255),
+                        TextInput::make('footer_youtube_url')
+                            ->label('URL YouTube')
+                            ->url()
+                            ->maxLength(255),
+                    ])
+                    ->columns(1),
             ]);
     }
 
@@ -137,7 +155,7 @@ class ParametresDuSite extends Page
             ->livewireSubmitHandler('save')
             ->footer([
                 Actions::make($this->getFormActions())
-                    ->alignment(\Filament\Support\Enums\Alignment::Start)
+                    ->alignment(Alignment::Start)
                     ->fullWidth(false)
                     ->sticky(false)
                     ->key('form-actions'),
@@ -151,5 +169,4 @@ class ParametresDuSite extends Page
                 $this->getFormContentComponent(),
             ]);
     }
-
 }

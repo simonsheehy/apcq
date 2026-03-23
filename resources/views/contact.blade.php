@@ -3,20 +3,20 @@
 @section('title', 'Contact')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
     <h1 class="text-3xl font-bold text-stone-900 mb-8">Contactez-nous</h1>
 
     <p class="text-stone-700 mb-8">N'hésitez pas à nous contacter pour tous renseignements ou commentaires.</p>
 
-    <div class="grid lg:grid-cols-2 gap-12">
-        <div>
+    <div class="grid lg:grid-cols-3 gap-12">
+        <div class="lg:col-span-2">
             @livewire('contact-form')
         </div>
 
-        <div class="bg-stone-100 rounded-lg p-6">
-            <h3 class="font-semibold text-stone-900 mb-4">Coordonnées</h3>
-            <address class="text-stone-700 not-italic">
-                <strong class="text-stone-900">L'APCQ</strong><br>
+        <div class="bg-stone-700 rounded-lg p-6">
+            <h3 class="font-semibold text-white mb-4">Coordonnées de l'APCQ</h3>
+            <address class="text-white not-italic">
+                <img src="{{ asset('images/logo.png') }}" alt="APCQ" class="h-12 object-contain mb-4">
                 @if($siteSettings->footer_address)
                     {!! nl2br(e($siteSettings->footer_address)) !!}<br>
                 @else
