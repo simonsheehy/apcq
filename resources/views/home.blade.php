@@ -3,31 +3,35 @@
 @section('title', 'Accueil')
 
 @section('content')
-<section class="bg-linear-to-br from-slate-800 to-stone-900 text-white">
-    <div class="mx-auto grid w-full max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:py-20">
-        <div class="lg:col-span-7">
-            <p class="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-apcq">Association de l'industrie cinématographique</p>
-            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">Nous unissons et faisons rayonner les cinémas du Québec.</h1>
-            <p class="mt-5 max-w-2xl text-base leading-7 text-slate-300">
+<section class="relative isolate overflow-hidden bg-slate-950 text-white">
+    <img
+        src="{{ asset('images/cinema.jpg') }}"
+        alt=""
+        class="pointer-events-none absolute inset-0 h-full w-full scale-105 object-cover object-center blur-md"
+        loading="lazy"
+    >
+    <img
+        src="{{ asset('images/cinema.jpg') }}"
+        alt=""
+        class="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-60"
+        loading="lazy"
+    >
+    <div class="hero-tech-grid pointer-events-none absolute inset-0 opacity-35"></div>
+
+    <div class="relative mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:py-32">
+        <div class="max-w-3xl">
+            <p class="animate-fade-up mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
+                Association de l'industrie cinématographique
+            </p>
+            <h1 class="animate-fade-up-delay text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                Nous unissons et faisons rayonner les cinémas du Québec.
+            </h1>
+            <p class="animate-fade-up-delay-2 mt-5 max-w-2xl text-base leading-7 text-slate-200">
                 L'APCQ rassemble les exploitants de toutes tailles et défend l'expérience salle comme premier choix de divertissement hors domicile.
             </p>
-            <div class="mt-8 flex flex-wrap gap-3">
-                <a href="{{ route('members.index') }}" class="rounded-md bg-apcq px-5 py-2.5 text-sm font-semibold text-white hover:bg-apcq-dark transition">Voir les membres</a>
-                <a href="{{ route('posts.index') }}" class="rounded-md border border-slate-500 px-5 py-2.5 text-sm font-semibold text-slate-100 hover:bg-slate-800 transition">Nouvelles</a>
-            </div>
-        </div>
-        <div class="grid gap-4 sm:grid-cols-3 lg:col-span-5 lg:grid-cols-1">
-            <div class="rounded-lg border border-slate-700 bg-white/5 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Box office 2025</p>
-                <p class="mt-2 text-2xl font-bold">8.6 G$</p>
-            </div>
-            <div class="rounded-lg border border-slate-700 bg-white/5 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Écrans représentés</p>
-                <p class="mt-2 text-2xl font-bold">64 000+</p>
-            </div>
-            <div class="rounded-lg border border-slate-700 bg-white/5 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Réseau</p>
-                <p class="mt-2 text-2xl font-bold">80 pays</p>
+            <div class="animate-fade-up-delay-3 mt-8 flex flex-wrap gap-3">
+                <a href="{{ route('members.index') }}" class="rounded-md bg-apcq px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 hover:-translate-y-0.5 hover:bg-apcq-dark transition">Voir les membres</a>
+                <a href="{{ route('posts.index') }}" class="rounded-md border border-slate-400/60 bg-slate-900/40 px-5 py-2.5 text-sm font-semibold text-slate-100 backdrop-blur hover:-translate-y-0.5 hover:bg-slate-800/80 transition">Nouvelles</a>
             </div>
         </div>
     </div>
@@ -104,7 +108,7 @@
                 @if($upcomingEvents->isNotEmpty())
                     <div class="space-y-3">
                         @foreach($upcomingEvents as $event)
-                            <article class="rounded-lg border border-slate-200 p-3">
+                            <article class="py-3">
                                 <p class="text-[11px] font-semibold uppercase tracking-wide text-apcq">
                                     {{ $event->starts_at?->translatedFormat('d M Y') }}
                                 </p>

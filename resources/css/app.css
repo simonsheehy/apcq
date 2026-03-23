@@ -12,3 +12,128 @@
     --color-apcq: #00bbf2;
     --color-apcq-dark: #08c;
 }
+
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float-soft {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes grid-pan {
+    0% {
+        background-position: 0 0, 0 0;
+    }
+    100% {
+        background-position: 80px 80px, 0 0;
+    }
+}
+
+@keyframes glow-pulse {
+    0%,
+    100% {
+        opacity: 0.25;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.45;
+        transform: scale(1.08);
+    }
+}
+
+@keyframes shimmer-soft {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgb(34 211 238 / 0.2);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgb(34 211 238 / 0);
+    }
+}
+
+.animate-fade-up {
+    animation: fade-up 0.6s ease-out both;
+}
+
+.animate-fade-up-delay {
+    animation: fade-up 0.7s ease-out 0.08s both;
+}
+
+.animate-fade-up-delay-2 {
+    animation: fade-up 0.7s ease-out 0.16s both;
+}
+
+.animate-fade-up-delay-3 {
+    animation: fade-up 0.7s ease-out 0.24s both;
+}
+
+.animate-float {
+    animation: float-soft 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+    animation: shimmer-soft 2.8s ease-in-out infinite;
+}
+
+.hero-tech-grid {
+    background-image:
+        linear-gradient(rgb(56 189 248 / 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(56 189 248 / 0.12) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: grid-pan 14s linear infinite;
+}
+
+.hero-glow-pulse {
+    animation: glow-pulse 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .animate-fade-up-delay,
+    .animate-fade-up-delay-2,
+    .animate-fade-up-delay-3,
+    .animate-float,
+    .animate-shimmer,
+    .hero-tech-grid,
+    .hero-glow-pulse {
+        animation: none;
+    }
+}
+
+.cookiesBtn__link {
+    @apply text-white bg-apcq! border-apcq-dark! hover:bg-apcq-dark px-4 py-2 rounded-md;
+}
+
+.cookiesBtn__link:hover {
+    @apply bg-apcq-dark!;
+}
+
+#cookies-policy .cookies__category input:checked+.cookies__box:after {
+    @apply border-apcq-dark!;
+}
+
+/* #cookies-policy .cookies__category input:checked+.cookies__box:before {
+    @apply bg-apcq-dark!;
+}
+
+#cookies-policy .cookies__category input:checked+.cookies__box:before {
+    @apply bg-apcq-dark!;
+}
+
+#cookies-policy .cookies__category input:checked+.cookies__box:before {
+    @apply bg-apcq-dark!;
+} */

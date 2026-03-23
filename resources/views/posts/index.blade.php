@@ -4,7 +4,16 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-    <h1 class="text-3xl font-bold text-stone-900 mb-8">Nouvelles</h1>
+    <h1 class="text-3xl font-bold text-stone-900 mb-2">Nouvelles</h1>
+    @if($activeTag)
+        <div class="mb-8 flex items-center gap-3 text-sm">
+            <span class="text-stone-600">Filtré par :</span>
+            <span class="rounded-full bg-apcq/10 px-3 py-1 font-medium text-apcq">{{ $activeTag->name }}</span>
+            <a href="{{ route('posts.index') }}" class="font-medium text-apcq hover:underline">Réinitialiser</a>
+        </div>
+    @else
+        <div class="mb-8"></div>
+    @endif
 
     @if($posts->isNotEmpty())
         <div class="space-y-8">
@@ -28,6 +37,16 @@
                             <p class="text-stone-600 text-sm mb-3">
                                 {{ $post->published_at?->translatedFormat('d F Y') }}
                             </p>
+                            @if($post->tags->isNotEmpty())
+                                <div class="mb-3 flex flex-wrap gap-2">
+                                    @foreach($post->tags as $tag)
+                                        <a href="{{ route('posts.by-tag', $tag->slug) }}"
+                                           class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-apcq/10 hover:text-apcq transition">
+                                            {{ $tag->name }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                             @if($post->excerpt)
                                 <p class="text-stone-700 mb-4">{{ $post->excerpt }}</p>
                             @else

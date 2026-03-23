@@ -13,14 +13,14 @@ class HomeController extends Controller
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->latest('published_at')
-            ->with('author')
+            ->with(['author', 'tags'])
             ->first();
 
         $recentQuery = Post::query()
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->latest('published_at')
-            ->with('author');
+            ->with(['author', 'tags']);
 
         if ($featuredPost) {
             $recentQuery->where('id', '!=', $featuredPost->id);

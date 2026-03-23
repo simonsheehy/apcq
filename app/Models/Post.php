@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
 {
-    /** @use HasFactory<\Database\Factories\PostFactory> */
+    /** @use HasFactory<PostFactory> */
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -19,6 +21,7 @@ class Post extends Model
         'excerpt',
         'content',
         'featured_image',
+        'gallery_images',
         'published_at',
     ];
 
@@ -29,11 +32,17 @@ class Post extends Model
     {
         return [
             'published_at' => 'datetime',
+            'gallery_images' => 'array',
         ];
     }
 
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class)->withTimestamps();
     }
 }

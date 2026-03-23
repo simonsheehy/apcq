@@ -25,6 +25,11 @@ class PostsTable
                 TextColumn::make('author.name')
                     ->label('Auteur')
                     ->sortable(),
+                TextColumn::make('tags.name')
+                    ->label('Tags')
+                    ->badge()
+                    ->separator(',')
+                    ->toggleable(),
                 TextColumn::make('published_at')
                     ->label('Publié le')
                     ->dateTime('d/m/Y')

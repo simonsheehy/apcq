@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MenuItems\Schemas;
 
+use App\Models\MenuItem;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -44,7 +45,16 @@ class MenuItemForm
                                         'footer' => 'Pied de page',
                                     ])
                                     ->required()
+                                    ->live()
                                     ->default('header'),
+                                Select::make('parent_id')
+                                    ->label('Élément parent')
+                                    ->placeholder('Aucun (niveau principal)')
+                                    ->options(fn (callable $get) => MenuItem::query()
+                                        ->where('location', $get('location') ?? 'header')
+                                        ->orderBy('sort_order')
+                                        ->pluck('label', 'id'))
+                                    ->searchable(),
                                 TextInput::make('sort_order')
                                     ->label('Ordre')
                                     ->numeric()

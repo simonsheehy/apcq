@@ -12,6 +12,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    @cookieconsentscripts
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased flex flex-col min-h-screen">
     {{-- Bannière cookies --}}
@@ -70,9 +71,31 @@
 
                 <nav class="hidden items-center gap-7 lg:flex">
                     @foreach($headerMenuItems ?? collect() as $item)
-                        <a href="{{ $item->resolveUrl() }}"
-                           @if($item->open_in_new_tab) target="_blank" rel="noopener" @endif
-                           class="text-sm font-semibold text-white/85 hover:text-white transition">{{ $item->label }}</a>
+                        @if($item->children->isNotEmpty())
+                            <div class="group relative">
+                                <a href="{{ $item->resolveUrl() }}"
+                                   @if($item->open_in_new_tab) target="_blank" rel="noopener" @endif
+                                   class="inline-flex items-center gap-1 text-sm font-semibold text-white/85 hover:text-white transition">
+                                    {{ $item->label }}
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </a>
+                                <div class="invisible absolute left-0 top-full mt-2 min-w-56 rounded-lg border border-slate-700 bg-black p-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
+                                    @foreach($item->children as $child)
+                                        <a href="{{ $child->resolveUrl() }}"
+                                           @if($child->open_in_new_tab) target="_blank" rel="noopener" @endif
+                                           class="block rounded-md px-3 py-2 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition">
+                                            {{ $child->label }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ $item->resolveUrl() }}"
+                               @if($item->open_in_new_tab) target="_blank" rel="noopener" @endif
+                               class="text-sm font-semibold text-white/85 hover:text-white transition">{{ $item->label }}</a>
+                        @endif
                     @endforeach
                 </nav>
             </div>
@@ -85,6 +108,15 @@
                     <a href="{{ $item->resolveUrl() }}"
                        @if($item->open_in_new_tab) target="_blank" rel="noopener" @endif
                        class="block rounded-md px-3 py-2 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition">{{ $item->label }}</a>
+                    @if($item->children->isNotEmpty())
+                        <div class="mt-1 space-y-1 pl-4">
+                            @foreach($item->children as $child)
+                                <a href="{{ $child->resolveUrl() }}"
+                                   @if($child->open_in_new_tab) target="_blank" rel="noopener" @endif
+                                   class="block rounded-md px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition">{{ $child->label }}</a>
+                            @endforeach
+                        </div>
+                    @endif
                 @endforeach
             </nav>
         </div>
@@ -112,6 +144,17 @@
                                 <a href="{{ $item->resolveUrl() }}"
                                    @if($item->open_in_new_tab) target="_blank" rel="noopener" @endif
                                    class="text-slate-300 hover:text-white transition">{{ $item->label }}</a>
+                                @if($item->children->isNotEmpty())
+                                    <ul class="mt-2 space-y-1 pl-4 text-xs">
+                                        @foreach($item->children as $child)
+                                            <li>
+                                                <a href="{{ $child->resolveUrl() }}"
+                                                   @if($child->open_in_new_tab) target="_blank" rel="noopener" @endif
+                                                   class="text-slate-400 hover:text-white transition">{{ $child->label }}</a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                             </li>
                         @empty
                             <li><a href="{{ route('posts.index') }}" class="hover:text-white transition">Nouvelles</a></li>
@@ -177,6 +220,7 @@
         </div>
     </footer>
 
+    @cookieconsentview
     @livewireScripts
     @stack('scripts')
 </body>
