@@ -72,6 +72,7 @@
                 <nav class="hidden items-center gap-7 lg:flex">
                     @foreach($headerMenuItems ?? collect() as $item)
                         @if($item->children->isNotEmpty())
+                            {{-- pt-2 (sans mt) : la marge créait un « trou » où le survol quittait .group et le menu se fermait --}}
                             <div class="group relative">
                                 <a href="{{ $item->resolveUrl() }}"
                                    @if($item->open_in_new_tab) target="_blank" rel="noopener" @endif
@@ -81,14 +82,16 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                     </svg>
                                 </a>
-                                <div class="invisible absolute left-0 top-full mt-2 min-w-56 rounded-lg border border-slate-700 bg-black p-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
-                                    @foreach($item->children as $child)
-                                        <a href="{{ $child->resolveUrl() }}"
-                                           @if($child->open_in_new_tab) target="_blank" rel="noopener" @endif
-                                           class="block rounded-md px-3 py-2 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition">
-                                            {{ $child->label }}
-                                        </a>
-                                    @endforeach
+                                <div class="invisible absolute left-0 top-full z-50 min-w-56 pt-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
+                                    <div class="rounded-lg border border-slate-700 bg-black p-2">
+                                        @foreach($item->children as $child)
+                                            <a href="{{ $child->resolveUrl() }}"
+                                               @if($child->open_in_new_tab) target="_blank" rel="noopener" @endif
+                                               class="block rounded-md px-3 py-2 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition">
+                                                {{ $child->label }}
+                                            </a>
+                                        @endforeach
+                                    </div>
                                 </div>
                             </div>
                         @else
