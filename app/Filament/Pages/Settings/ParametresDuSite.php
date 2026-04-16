@@ -33,7 +33,7 @@ class ParametresDuSite extends Page
 
     protected static ?string $slug = 'parametres';
 
-    protected static ?int $navigationSort = 100;
+    protected static ?int $navigationSort = 70;
 
     /**
      * @var array<string, mixed>|null

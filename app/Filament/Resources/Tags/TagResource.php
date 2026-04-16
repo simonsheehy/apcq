@@ -26,6 +26,8 @@ class TagResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
+    protected static ?int $navigationSort = 90;
+
     public static function form(Schema $schema): Schema
     {
         return TagForm::configure($schema);

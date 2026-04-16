@@ -26,7 +26,7 @@ class PageResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static ?int $navigationSort = 85;
+    protected static ?int $navigationSort = 60;
 
     public static function form(Schema $schema): Schema
     {

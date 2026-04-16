@@ -30,6 +30,8 @@ class PartnerResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
+    protected static ?int $navigationSort = 80;
+
     public static function form(Schema $schema): Schema
     {
         return PartnerForm::configure($schema);
