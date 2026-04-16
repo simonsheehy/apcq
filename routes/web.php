@@ -8,6 +8,7 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\TeamMemberController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -17,6 +18,8 @@ Route::get('/nouvelles/{tag:slug}', [PostController::class, 'byTag'])->name('pos
 Route::get('/membres', [MemberController::class, 'index'])->name('members.index');
 Route::get('/conseil-administration', [BoardMemberController::class, 'index'])->name('board-members.index');
 Route::get('/conseil-administration/{slug}', [BoardMemberController::class, 'show'])->name('board-members.show');
+Route::get('/equipe', [TeamMemberController::class, 'index'])->name('team-members.index');
+Route::get('/equipe/{slug}', [TeamMemberController::class, 'show'])->name('team-members.show');
 Route::get('/evenements', [EventController::class, 'index'])->name('events.index');
 Route::get('/evenements/{slug}', [EventController::class, 'show'])->name('events.show');
 Route::get('/partenaires', [PartnerController::class, 'index'])->name('partners.index');

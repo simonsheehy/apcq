@@ -66,7 +66,7 @@
                         {{ $featuredPost->published_at?->translatedFormat('d F Y') }}
                     </p>
                     <p class="mt-4 text-slate-700">
-                        {{ Str::limit($featuredPost->excerpt ?? Str::stripTags($featuredPost->content), 220) }}
+                        {{ Str::limit($featuredPost->excerpt ?? strip_tags($featuredPost->content), 220) }}
                     </p>
                     <a href="{{ route('posts.show', $featuredPost->slug) }}"
                        class="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-apcq hover:underline">

@@ -50,7 +50,7 @@
                             @if($post->excerpt)
                                 <p class="text-stone-700 mb-4">{{ $post->excerpt }}</p>
                             @else
-                                <p class="text-stone-700 mb-4">{{ Str::limit(Str::stripTags($post->content), 200) }}</p>
+                                <p class="text-stone-700 mb-4">{{ Str::limit(strip_tags($post->content), 200) }}</p>
                             @endif
                             <a href="{{ route('posts.show', $post->slug) }}"
                                class="inline-flex items-center font-medium text-apcq hover:underline">
