@@ -20,15 +20,21 @@
             @foreach($events as $event)
                 <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     @if($event->featured_image)
-                        <img src="{{ asset('storage/' . $event->featured_image) }}"
-                             alt="{{ $event->title }}"
-                             class="h-48 w-full object-cover">
+                        <a href="{{ route('events.show', $event->slug) }}">
+                            <img src="{{ asset('storage/' . $event->featured_image) }}"
+                                 alt="{{ $event->title }}"
+                                 class="h-48 w-full object-cover">
+                        </a>
                     @endif
                     <div class="p-6">
                     <p class="text-xs font-semibold uppercase tracking-wide text-apcq">
                         {{ $event->starts_at?->translatedFormat('d F Y') ?? 'Date à confirmer' }}
                     </p>
-                    <h2 class="mt-2 text-xl font-bold tracking-tight text-slate-900">{{ $event->title }}</h2>
+                    <h2 class="mt-2 text-xl font-bold tracking-tight text-slate-900">
+                        <a href="{{ route('events.show', $event->slug) }}" class="hover:text-apcq transition">
+                            {{ $event->title }}
+                        </a>
+                    </h2>
                     @if($event->location)
                         <p class="mt-2 text-sm font-medium text-slate-600">{{ $event->location }}</p>
                     @endif
@@ -37,11 +43,16 @@
                     @elseif($event->description)
                         <div class="prose prose-sm mt-4 max-w-none text-slate-700">{!! \Illuminate\Support\Str::limit((string) $event->description, 220) !!}</div>
                     @endif
+                    <div class="mt-4 flex flex-wrap items-center gap-4">
+                        <a href="{{ route('events.show', $event->slug) }}" class="inline-flex text-sm font-semibold text-apcq hover:underline">
+                            Détails
+                        </a>
                     @if($event->event_url)
-                        <a href="{{ $event->event_url }}" target="_blank" rel="noopener" class="mt-4 inline-flex text-sm font-semibold text-apcq hover:underline">
+                        <a href="{{ $event->event_url }}" target="_blank" rel="noopener" class="inline-flex text-sm font-semibold text-apcq hover:underline">
                             En savoir plus
                         </a>
                     @endif
+                    </div>
                     </div>
                 </article>
             @endforeach

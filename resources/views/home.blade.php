@@ -120,7 +120,11 @@
                                 <p class="text-[11px] font-semibold uppercase tracking-wide text-apcq">
                                     {{ $event->starts_at?->translatedFormat('d M Y') }}
                                 </p>
-                                <p class="mt-1 text-sm font-semibold text-slate-900">{{ $event->title }}</p>
+                                <p class="mt-1 text-sm font-semibold text-slate-900">
+                                    <a href="{{ route('events.show', $event->slug) }}" class="hover:text-apcq transition">
+                                        {{ $event->title }}
+                                    </a>
+                                </p>
                                 @if($event->location)
                                     <p class="mt-1 text-xs text-slate-600">{{ $event->location }}</p>
                                 @endif

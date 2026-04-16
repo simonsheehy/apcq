@@ -19,4 +19,16 @@ class EventController extends Controller
             'events' => $events,
         ]);
     }
+
+    public function show(string $slug): View
+    {
+        $event = Event::query()
+            ->published()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        return view('events.show', [
+            'event' => $event,
+        ]);
+    }
 }
