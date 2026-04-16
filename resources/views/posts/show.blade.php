@@ -47,7 +47,7 @@
     </div>
 
     @if($galleryImages->isNotEmpty())
-        <section class="mb-8">
+        <section class="mb-8 mt-12">
             <h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-500">Galerie</h2>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 @foreach($galleryImages as $imagePath)
