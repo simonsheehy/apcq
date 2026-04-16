@@ -3,15 +3,23 @@
 @section('title', 'Accueil')
 
 @section('content')
+@php
+    $heroBadge = $homeSettings->home_hero_badge ?: "Association de l'industrie cinématographique";
+    $heroTitle = $homeSettings->home_hero_title ?: 'Nous unissons et faisons rayonner les cinémas du Québec.';
+    $heroText = $homeSettings->home_hero_text ?: "L'APCQ rassemble les exploitants de toutes tailles et défend l'expérience salle comme premier choix de divertissement hors domicile.";
+    $heroBackgroundImage = $homeSettings->home_hero_background_image
+        ? asset('storage/' . $homeSettings->home_hero_background_image)
+        : asset('images/cinema.jpg');
+@endphp
 <section class="relative isolate overflow-hidden bg-slate-950 text-white">
     <img
-        src="{{ asset('images/cinema.jpg') }}"
+        src="{{ $heroBackgroundImage }}"
         alt=""
         class="pointer-events-none absolute inset-0 h-full w-full scale-105 object-cover object-center blur-md"
         loading="lazy"
     >
     <img
-        src="{{ asset('images/cinema.jpg') }}"
+        src="{{ $heroBackgroundImage }}"
         alt=""
         class="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-60"
         loading="lazy"
@@ -21,13 +29,13 @@
     <div class="relative mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:py-32">
         <div class="max-w-3xl">
             <p class="animate-fade-up mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
-                Association de l'industrie cinématographique
+                {{ $heroBadge }}
             </p>
             <h1 class="animate-fade-up-delay text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                Nous unissons et faisons rayonner les cinémas du Québec.
+                {{ $heroTitle }}
             </h1>
             <p class="animate-fade-up-delay-2 mt-5 max-w-2xl text-base leading-7 text-slate-200">
-                L'APCQ rassemble les exploitants de toutes tailles et défend l'expérience salle comme premier choix de divertissement hors domicile.
+                {{ $heroText }}
             </p>
             <div class="animate-fade-up-delay-3 mt-8 flex flex-wrap gap-3">
                 <a href="{{ route('members.index') }}" class="rounded-md bg-apcq px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 hover:-translate-y-0.5 hover:bg-apcq-dark transition">Voir les membres</a>

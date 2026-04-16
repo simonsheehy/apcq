@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Post;
+use App\Models\SiteSetting;
 
 class HomeController extends Controller
 {
@@ -39,6 +40,7 @@ class HomeController extends Controller
             'featuredPost' => $featuredPost,
             'recentPosts' => $recentPosts,
             'upcomingEvents' => $upcomingEvents,
+            'homeSettings' => SiteSetting::instance(),
         ]);
     }
 }

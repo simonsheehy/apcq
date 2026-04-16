@@ -5,6 +5,7 @@ namespace App\Filament\Pages\Settings;
 use App\Models\SiteSetting;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -66,6 +67,27 @@ class ParametresDuSite extends Page
     {
         return $schema
             ->components([
+                Section::make('Page d\'accueil')
+                    ->description('Contenu du hero de la page d\'accueil')
+                    ->schema([
+                        TextInput::make('home_hero_badge')
+                            ->label('Texte d\'introduction')
+                            ->maxLength(255),
+                        TextInput::make('home_hero_title')
+                            ->label('Titre principal')
+                            ->maxLength(255),
+                        Textarea::make('home_hero_text')
+                            ->label('Texte')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                        FileUpload::make('home_hero_background_image')
+                            ->label('Image de fond')
+                            ->image()
+                            ->directory('site-settings')
+                            ->disk('public')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
                 Section::make('Pied de page')
                     ->description('Informations affichées dans le pied de page')
                     ->schema([

@@ -14,6 +14,10 @@ class SiteSetting extends Model
         'footer_facebook_url',
         'footer_linkedin_url',
         'footer_youtube_url',
+        'home_hero_badge',
+        'home_hero_title',
+        'home_hero_text',
+        'home_hero_background_image',
     ];
 
     protected static ?SiteSetting $instance = null;
