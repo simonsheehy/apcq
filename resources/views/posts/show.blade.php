@@ -33,6 +33,19 @@
         </figure>
     @endif
 
+    <div class="prose prose-stone max-w-none prose-headings:font-bold prose-a:text-apcq prose-a:no-underline hover:prose-a:underline">
+        {!! $post->content !!}
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-stone-200">
+        <a href="{{ route('posts.index') }}" class="inline-flex items-center font-medium text-apcq hover:underline">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Retour aux nouvelles
+        </a>
+    </div>
+
     @if($galleryImages->isNotEmpty())
         <section class="mb-8">
             <h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-500">Galerie</h2>
@@ -50,18 +63,5 @@
             </div>
         </section>
     @endif
-
-    <div class="prose prose-stone max-w-none prose-headings:font-bold prose-a:text-apcq prose-a:no-underline hover:prose-a:underline">
-        {!! $post->content !!}
-    </div>
-
-    <div class="mt-12 pt-8 border-t border-stone-200">
-        <a href="{{ route('posts.index') }}" class="inline-flex items-center font-medium text-apcq hover:underline">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-            Retour aux nouvelles
-        </a>
-    </div>
 </article>
 @endsection

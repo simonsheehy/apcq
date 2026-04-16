@@ -55,9 +55,9 @@
         </div>
 
         <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 text-white" x-data="{ mobileMenuOpen: false }">
-            <div class="flex h-16 items-center justify-between lg:h-24">
+            <div class="flex h-16 items-center justify-between md:h-24">
                 <a href="{{ route('home') }}" class="flex items-center gap-3">
-                    <span class="inline-flex h-18 text-sm font-black text-white"><img src="{{ asset('images/logo.png') }}" alt="APCQ" class="w-full h-full object-contain"></span>
+                    <span class="inline-flex h-12 text-sm font-black text-white md:h-18"><img src="{{ asset('images/logo.png') }}" alt="APCQ" class="w-full h-full object-contain"></span>
                 </a>
 
                 <button @click="mobileMenuOpen = !mobileMenuOpen"
