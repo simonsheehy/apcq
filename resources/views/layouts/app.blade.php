@@ -15,20 +15,6 @@
     @cookieconsentscripts
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased flex flex-col min-h-screen">
-    {{-- Bannière cookies --}}
-    <div x-data="{ show: !localStorage.getItem('apcq-cookies-accepted') }"
-         x-show="show"
-         x-transition
-         class="fixed bottom-0 left-0 right-0 z-50 bg-stone-900 text-white px-4 py-3 text-sm text-center">
-        <p>
-            En poursuivant votre navigation, vous acceptez le dépôt de cookies destinés à conserver vos préférences.
-            <button @click="localStorage.setItem('apcq-cookies-accepted', '1'); show = false"
-                    class="ml-2 underline font-medium hover:text-apcq">
-                OK
-            </button>
-        </p>
-    </div>
-
     {{-- Header --}}
     <header class="sticky top-0 z-40 border-b border-black bg-black/95 backdrop-blur">
         <div class="border-b border-cyan-400 bg-apcq text-white">
