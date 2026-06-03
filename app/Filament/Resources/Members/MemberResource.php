@@ -17,12 +17,15 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class MemberResource extends Resource
 {
     protected static ?string $model = Member::class;
 
     protected static ?string $navigationLabel = 'Membres';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Administration';
 
     protected static ?string $modelLabel = 'membre';
 

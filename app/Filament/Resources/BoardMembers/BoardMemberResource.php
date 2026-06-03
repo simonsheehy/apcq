@@ -15,12 +15,15 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class BoardMemberResource extends Resource
 {
     protected static ?string $model = BoardMember::class;
 
     protected static ?string $navigationLabel = 'Conseil d\'administration';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Administration';
 
     protected static ?string $modelLabel = 'membre du conseil';
 

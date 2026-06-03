@@ -13,10 +13,13 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class TagResource extends Resource
 {
     protected static ?string $model = Tag::class;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Administration';
 
     protected static ?string $navigationLabel = 'Tags';
 

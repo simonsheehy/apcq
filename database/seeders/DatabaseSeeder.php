@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             PageSeeder::class,
             EventSeeder::class,
             TagSeeder::class,
+            CinemaInventorySeeder::class,
         ]);
     }
 }

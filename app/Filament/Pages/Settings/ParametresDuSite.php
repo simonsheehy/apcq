@@ -20,12 +20,15 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Exceptions\Halt;
 use Filament\Support\Icons\Heroicon;
+use UnitEnum;
 
 class ParametresDuSite extends Page
 {
     use CanUseDatabaseTransactions;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Administration';
 
     protected static ?string $navigationLabel = 'Paramètres du site';
 

@@ -15,10 +15,13 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class TeamMemberResource extends Resource
 {
     protected static ?string $model = TeamMember::class;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Administration';
 
     protected static ?string $navigationLabel = 'Membres de l\'équipe';
 
