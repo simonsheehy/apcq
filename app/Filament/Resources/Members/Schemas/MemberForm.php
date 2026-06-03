@@ -50,6 +50,7 @@ class MemberForm
                                 SpatieMediaLibraryFileUpload::make('logo')
                                     ->label('Logo')
                                     ->collection('logo')
+                                    ->disk('public')
                                     ->image()
                                     ->imageEditor()
                                     ->maxSize(2048),
