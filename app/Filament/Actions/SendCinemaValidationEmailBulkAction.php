@@ -32,12 +32,12 @@ class SendCinemaValidationEmailBulkAction extends BulkAction
             ->modalHeading('Envoyer la demande de saisie')
             ->modalDescription('Chaque cinéma sélectionné recevra un courriel contenant son lien unique vers le formulaire de validation.')
             ->modalSubmitActionLabel('Envoyer')
-            ->successNotificationTitle(function (int $successCount): string {
-                if ($successCount === 1) {
+            ->successNotificationTitle(function (): string {
+                if ($this->successfulSelectedRecordsCount === 1) {
                     return 'Courriel envoyé';
                 }
 
-                return Number::format($successCount).' courriels envoyés';
+                return Number::format($this->successfulSelectedRecordsCount).' courriels envoyés';
             })
             ->failureNotificationTitle(function (int $successCount, int $totalCount): string {
                 if ($successCount) {
