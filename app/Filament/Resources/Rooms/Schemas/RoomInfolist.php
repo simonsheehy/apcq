@@ -43,8 +43,13 @@ class RoomInfolist
                 Section::make('Équipement')
                     ->schema([
                         TextEntry::make('sound_processor')->label('Processeur de son')->placeholder('—'),
-                        TextEntry::make('projector')->label('Projecteur')->placeholder('—'),
-                        TextEntry::make('screen_size')->label('Taille de l\'écran')->placeholder('—'),
+                        TextEntry::make('projector_brand')->label('Marque du projecteur')->placeholder('—'),
+                        TextEntry::make('projector_brand_other')->label('Marque (autre)')->placeholder('—'),
+                        TextEntry::make('projector_model')->label('Modèle du projecteur')->placeholder('—'),
+                        TextEntry::make('server_model')->label('Modèle du serveur')->placeholder('—'),
+                        TextEntry::make('projection_type')->label('Type de projection')->placeholder('—'),
+                        TextEntry::make('installation_year')->label('Année d\'installation')->placeholder('—'),
+                        TextEntry::make('screen_size')->label('Grandeur de l\'écran')->placeholder('—'),
                     ])
                     ->columns(2),
             ]);

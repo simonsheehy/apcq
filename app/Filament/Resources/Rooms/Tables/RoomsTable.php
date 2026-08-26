@@ -43,6 +43,14 @@ class RoomsTable
                     ->label('Son')
                     ->badge()
                     ->separator(','),
+                TextColumn::make('projector_brand')
+                    ->label('Projecteur')
+                    ->toggleable()
+                    ->placeholder('—'),
+                TextColumn::make('projection_type')
+                    ->label('Projection')
+                    ->toggleable()
+                    ->placeholder('—'),
                 TextColumn::make('screen_size')
                     ->label('Écran')
                     ->toggleable()

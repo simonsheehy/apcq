@@ -2,12 +2,17 @@
 
 namespace App\Filament\Resources\Cinemas\Tables;
 
+use App\Filament\Actions\CopyCinemaValidationLinkAction;
+use App\Filament\Actions\SendCinemaValidationEmailAction;
+use App\Filament\Actions\SendCinemaValidationEmailBulkAction;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -41,6 +46,14 @@ class CinemasTable
                     ->label('Salles')
                     ->counts('rooms')
                     ->sortable(),
+                IconColumn::make('personal_info_validated_at')
+                    ->label('Contact')
+                    ->boolean()
+                    ->tooltip(fn ($state) => $state?->timezone('America/Toronto')->translatedFormat('d F Y')),
+                IconColumn::make('cinema_info_validated_at')
+                    ->label('Cinéma')
+                    ->boolean()
+                    ->tooltip(fn ($state) => $state?->timezone('America/Toronto')->translatedFormat('d F Y')),
                 IconColumn::make('alcohol_permit')
                     ->label('Alcool')
                     ->boolean(),
@@ -61,9 +74,15 @@ class CinemasTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                Action::make('openValidationLink')
+                    ->label('')
+                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                    ->url(fn ($record): string => $record->validationUrl())
+                    ->openUrlInNewTab(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    SendCinemaValidationEmailBulkAction::make(),
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),

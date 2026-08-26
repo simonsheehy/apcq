@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Mail\CinemaValidationRequestMail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class Cinema extends Model
 {
@@ -14,6 +17,7 @@ class Cinema extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'access_token',
         'group_id',
         'administrative_region_id',
         'name',
@@ -35,6 +39,8 @@ class Cinema extends Model
         'ticket_booths_count',
         'alcohol_permit',
         'edelivery',
+        'personal_info_validated_at',
+        'cinema_info_validated_at',
     ];
 
     protected function casts(): array
@@ -43,7 +49,18 @@ class Cinema extends Model
             'alcohol_permit' => 'boolean',
             'cash_registers_count' => 'integer',
             'ticket_booths_count' => 'integer',
+            'personal_info_validated_at' => 'datetime',
+            'cinema_info_validated_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Cinema $cinema): void {
+            if (blank($cinema->access_token)) {
+                $cinema->access_token = (string) Str::uuid();
+            }
+        });
     }
 
     public function group(): BelongsTo
@@ -59,5 +76,37 @@ class Cinema extends Model
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);
+    }
+
+    public function validationUrl(): string
+    {
+        return route('cinemas.validation', $this->access_token);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function validationRequestRecipients(): array
+    {
+        return collect([$this->primary_contact_email, $this->email])
+            ->filter(fn (mixed $email): bool => is_string($email) && filled($email))
+            ->map(fn (string $email): string => trim($email))
+            ->filter(fn (string $email): bool => filter_var($email, FILTER_VALIDATE_EMAIL) !== false)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function sendValidationRequest(): bool
+    {
+        $recipients = $this->validationRequestRecipients();
+
+        if ($recipients === []) {
+            return false;
+        }
+
+        Mail::to($recipients)->send(new CinemaValidationRequestMail($this));
+
+        return true;
     }
 }

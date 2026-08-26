@@ -114,6 +114,10 @@
     }
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 .cookiesBtn__link {
     @apply text-white bg-apcq! border-apcq-dark! hover:bg-apcq-dark px-4 py-2 rounded-md;
 }

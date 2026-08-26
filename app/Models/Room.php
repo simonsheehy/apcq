@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectionType;
+use App\Enums\ProjectorBrand;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,8 +22,38 @@ class Room extends Model
         'name',
         'sound_processor',
         'projector',
+        'projector_brand',
+        'projector_brand_other',
+        'projector_model',
+        'server_model',
+        'projection_type',
+        'installation_year',
         'screen_size',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'projector_brand' => ProjectorBrand::class,
+            'projection_type' => ProjectionType::class,
+            'installation_year' => 'integer',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Room $room): void {
+            $displayName = $room->projectorDisplayName();
+
+            if (filled($displayName)) {
+                $room->projector = $displayName;
+            }
+
+            if ($room->projector_brand !== ProjectorBrand::Other) {
+                $room->projector_brand_other = null;
+            }
+        });
+    }
 
     public function cinema(): BelongsTo
     {
@@ -61,5 +93,18 @@ class Room extends Model
     public function getTotalSeatsAttribute(): int
     {
         return (int) $this->seatAllocations->sum('quantity');
+    }
+
+    public function projectorDisplayName(): ?string
+    {
+        $brand = match ($this->projector_brand) {
+            ProjectorBrand::Other => $this->projector_brand_other,
+            null => null,
+            default => $this->projector_brand->getLabel(),
+        };
+
+        $parts = array_filter([$brand, $this->projector_model]);
+
+        return $parts === [] ? null : implode(' ', $parts);
     }
 }

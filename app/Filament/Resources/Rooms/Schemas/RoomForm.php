@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources\Rooms\Schemas;
 
+use App\Enums\ProjectionType;
+use App\Enums\ProjectorBrand;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class RoomForm
@@ -93,11 +96,33 @@ class RoomForm
                     TextInput::make('sound_processor')
                         ->label('Processeur de son (marque / modèle)')
                         ->maxLength(255),
-                    TextInput::make('projector')
-                        ->label('Projecteur (marque / modèle)')
+                    Select::make('projector_brand')
+                        ->label('Marque du projecteur')
+                        ->options(ProjectorBrand::class)
+                        ->live(),
+                    TextInput::make('projector_brand_other')
+                        ->label('Nom de la marque')
+                        ->maxLength(255)
+                        ->visible(fn (Get $get): bool => $get('projector_brand') === ProjectorBrand::Other
+                            || $get('projector_brand') === ProjectorBrand::Other->value)
+                        ->required(fn (Get $get): bool => $get('projector_brand') === ProjectorBrand::Other
+                            || $get('projector_brand') === ProjectorBrand::Other->value),
+                    TextInput::make('projector_model')
+                        ->label('Modèle du projecteur')
                         ->maxLength(255),
+                    TextInput::make('server_model')
+                        ->label('Modèle du serveur')
+                        ->maxLength(255),
+                    Select::make('projection_type')
+                        ->label('Type de projection')
+                        ->options(ProjectionType::class),
+                    TextInput::make('installation_year')
+                        ->label('Année d\'installation')
+                        ->numeric()
+                        ->minValue(1950)
+                        ->maxValue((int) now()->year + 1),
                     TextInput::make('screen_size')
-                        ->label('Taille de l\'écran')
+                        ->label('Grandeur de l\'écran')
                         ->maxLength(255),
                 ])
                 ->columns(2),

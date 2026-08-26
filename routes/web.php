@@ -9,6 +9,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TeamMemberController;
+use App\Livewire\CinemaValidation;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -26,3 +27,6 @@ Route::get('/partenaires', [PartnerController::class, 'index'])->name('partners.
 Route::get('/a-propos', [PageController::class, 'show'])->defaults('slug', 'a-propos')->name('about');
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
 Route::get('/contact', ContactController::class)->name('contact');
+Route::get('/validation/{token}', CinemaValidation::class)
+    ->middleware('throttle:180,1')
+    ->name('cinemas.validation');

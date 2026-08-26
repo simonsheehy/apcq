@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Cinemas\Schemas;
 
+use App\Models\Cinema;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -51,6 +52,26 @@ class CinemaInfolist
                         TextEntry::make('cash_registers_count')->label('Nombre de caisses')->placeholder('—'),
                         TextEntry::make('ticket_booths_count')->label('Nombre de guichets')->placeholder('—'),
                         IconEntry::make('alcohol_permit')->label('Permis d\'alcool')->boolean(),
+                    ])
+                    ->columns(2),
+
+                Section::make('Validation en ligne')
+                    ->schema([
+                        TextEntry::make('validation_url')
+                            ->label('Lien unique')
+                            ->state(fn (Cinema $record): string => $record->validationUrl())
+                            ->copyable()
+                            ->columnSpanFull(),
+                        TextEntry::make('personal_info_validated_at')
+                            ->label('Informations personnelles')
+                            ->dateTime('d F Y à H:i')
+                            ->placeholder('Non validé')
+                            ->timezone('America/Toronto'),
+                        TextEntry::make('cinema_info_validated_at')
+                            ->label('Informations du cinéma')
+                            ->dateTime('d F Y à H:i')
+                            ->placeholder('Non validé')
+                            ->timezone('America/Toronto'),
                     ])
                     ->columns(2),
             ]);

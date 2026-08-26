@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'APCQ') – Association des propriétaires de cinémas du Québec</title>
+    <title>{{ $title ?? $__env->yieldContent('title', 'APCQ') }} – Association des propriétaires de cinémas du Québec</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet">
@@ -13,6 +13,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     @cookieconsentscripts
+    @stack('head')
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased flex flex-col min-h-screen">
     {{-- Header --}}
@@ -112,7 +113,11 @@
     </header>
 
     <main class="flex-1">
-        @yield('content')
+        @isset($slot)
+            {{ $slot }}
+        @else
+            @yield('content')
+        @endisset
     </main>
 
     {{-- Footer --}}

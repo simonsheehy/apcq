@@ -39,6 +39,12 @@ class RoomsRelationManager extends RelationManager
                     ->label('Places')
                     ->sum('seatAllocations', 'quantity')
                     ->placeholder('0'),
+                TextColumn::make('projector_brand')
+                    ->label('Projecteur')
+                    ->placeholder('—'),
+                TextColumn::make('projection_type')
+                    ->label('Projection')
+                    ->placeholder('—'),
                 TextColumn::make('imageTechnologies.name')
                     ->label('Image')
                     ->badge()
