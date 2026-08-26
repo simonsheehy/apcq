@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Mail\CinemaValidationRequestMail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -76,6 +77,22 @@ class Cinema extends Model
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);
+    }
+
+    public function scopeInformationValidated(Builder $query): Builder
+    {
+        return $query
+            ->whereNotNull('personal_info_validated_at')
+            ->whereNotNull('cinema_info_validated_at');
+    }
+
+    public function scopeInformationNotValidated(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query
+                ->whereNull('personal_info_validated_at')
+                ->orWhereNull('cinema_info_validated_at');
+        });
     }
 
     public function validationUrl(): string

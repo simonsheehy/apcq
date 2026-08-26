@@ -10,6 +10,7 @@ use App\Filament\Resources\Cinemas\RelationManagers\RoomsRelationManager;
 use App\Filament\Resources\Cinemas\Schemas\CinemaForm;
 use App\Filament\Resources\Cinemas\Schemas\CinemaInfolist;
 use App\Filament\Resources\Cinemas\Tables\CinemasTable;
+use App\Filament\Resources\Cinemas\Widgets\CinemaValidationStats;
 use App\Models\Cinema;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -67,6 +68,13 @@ class CinemaResource extends Resource
             'create' => CreateCinema::route('/create'),
             'view' => ViewCinema::route('/{record}'),
             'edit' => EditCinema::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            CinemaValidationStats::class,
         ];
     }
 
