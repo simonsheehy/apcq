@@ -107,7 +107,7 @@
                 <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h2 class="text-xl font-semibold text-slate-900">Informations du cinéma</h2>
-                        <p class="mt-1 text-sm text-slate-500">Identification, coordonnées et exploitation.</p>
+                        <p class="mt-1 text-sm text-slate-500">Identification et coordonnées.</p>
                     </div>
                     @if($cinemaInfoConfirmed && $cinema->cinema_info_validated_at)
                         <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -147,6 +147,23 @@
                             @enderror
                         </div>
                         <div>
+                            <label for="administrative_region_id" class="{{ $labelClass }}">Région administrative</label>
+                            <div class="relative">
+                                <select id="administrative_region_id" wire:model.live="details.administrative_region_id" class="{{ $selectClass }}">
+                                    <option value="">Choisir…</option>
+                                    @foreach($administrativeRegions as $region)
+                                        <option value="{{ $region->id }}">{{ $region->name }}</option>
+                                    @endforeach
+                                </select>
+                                <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
+                            @error('details.administrative_region_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
                             <label for="postal_code" class="{{ $labelClass }}">Code postal</label>
                             <input type="text" id="postal_code" wire:model.live.debounce.500ms="details.postal_code" class="{{ $inputClass }}">
                             @error('details.postal_code')
@@ -160,7 +177,7 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div>
+                        <div class="sm:col-span-2">
                             <label for="cinema_email" class="{{ $labelClass }}">Courriel (info)</label>
                             <input type="email" id="cinema_email" wire:model.live.debounce.500ms="details.email" class="{{ $inputClass }}">
                             @error('details.email')
@@ -173,44 +190,6 @@
                             @error('details.website')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Exploitation</h3>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <label for="pos_software" class="{{ $labelClass }}">Logiciel de caisse</label>
-                                <input type="text" id="pos_software" wire:model.live.debounce.500ms="details.pos_software" class="{{ $inputClass }}">
-                                @error('details.pos_software')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="edelivery" class="{{ $labelClass }}">eDelivery (CineSend, Global DCP, etc.)</label>
-                                <input type="text" id="edelivery" wire:model.live.debounce.500ms="details.edelivery" class="{{ $inputClass }}">
-                                @error('details.edelivery')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="cash_registers_count" class="{{ $labelClass }}">Nombre de caisses</label>
-                                <input type="number" min="0" id="cash_registers_count" wire:model.live.debounce.500ms="details.cash_registers_count" class="{{ $inputClass }}">
-                                @error('details.cash_registers_count')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="ticket_booths_count" class="{{ $labelClass }}">Nombre de guichets</label>
-                                <input type="number" min="0" id="ticket_booths_count" wire:model.live.debounce.500ms="details.ticket_booths_count" class="{{ $inputClass }}">
-                                @error('details.ticket_booths_count')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <label class="flex cursor-pointer items-center gap-3 sm:col-span-2">
-                                <input type="checkbox" wire:model.live="details.alcohol_permit" class="rounded border-slate-300 text-apcq focus:ring-apcq">
-                                <span class="text-sm font-medium text-slate-700">Permis d’alcool</span>
-                            </label>
                         </div>
                     </div>
 

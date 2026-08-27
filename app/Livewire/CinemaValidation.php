@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\ProjectionType;
 use App\Enums\ProjectorBrand;
+use App\Models\AdministrativeRegion;
 use App\Models\Cinema;
 use App\Models\Room;
 use Illuminate\Validation\Rule;
@@ -121,6 +122,7 @@ class CinemaValidation extends Component
     public function render()
     {
         return view('livewire.cinema-validation', [
+            'administrativeRegions' => AdministrativeRegion::query()->orderBy('name')->get(['id', 'name']),
             'projectorBrands' => ProjectorBrand::cases(),
             'projectionTypes' => ProjectionType::cases(),
         ])->layout('layouts.app', [
@@ -142,17 +144,13 @@ class CinemaValidation extends Component
         $this->details = [
             'name' => $this->cinema->name ?? '',
             'legal_company_name' => $this->cinema->legal_company_name ?? '',
+            'administrative_region_id' => $this->cinema->administrative_region_id ?? '',
             'address' => $this->cinema->address ?? '',
             'city' => $this->cinema->city ?? '',
             'postal_code' => $this->cinema->postal_code ?? '',
             'phone' => $this->cinema->phone ?? '',
             'email' => $this->cinema->email ?? '',
             'website' => $this->cinema->website ?? '',
-            'pos_software' => $this->cinema->pos_software ?? '',
-            'edelivery' => $this->cinema->edelivery ?? '',
-            'cash_registers_count' => $this->cinema->cash_registers_count,
-            'ticket_booths_count' => $this->cinema->ticket_booths_count,
-            'alcohol_permit' => (bool) $this->cinema->alcohol_permit,
         ];
 
         $this->personalInfoConfirmed = $this->cinema->personal_info_validated_at !== null;
@@ -195,17 +193,13 @@ class CinemaValidation extends Component
             'details' => [
                 'name' => ['required', 'string', 'max:255'],
                 'legal_company_name' => ['nullable', 'string', 'max:255'],
+                'administrative_region_id' => ['nullable', 'integer', Rule::exists(AdministrativeRegion::class, 'id')],
                 'address' => ['nullable', 'string', 'max:255'],
                 'city' => ['nullable', 'string', 'max:255'],
                 'postal_code' => ['nullable', 'string', 'max:255'],
                 'phone' => ['nullable', 'string', 'max:255'],
                 'email' => ['nullable', 'email', 'max:255'],
                 'website' => ['nullable', 'string', 'max:255'],
-                'pos_software' => ['nullable', 'string', 'max:255'],
-                'edelivery' => ['nullable', 'string', 'max:255'],
-                'cash_registers_count' => ['nullable', 'integer', 'min:0', 'max:1000'],
-                'ticket_booths_count' => ['nullable', 'integer', 'min:0', 'max:1000'],
-                'alcohol_permit' => ['boolean'],
             ],
         ];
 
@@ -216,17 +210,17 @@ class CinemaValidation extends Component
         $errorKey = "{$group}.{$field}";
         $hadError = $this->getErrorBag()->has($errorKey);
 
+        if ($field === 'administrative_region_id') {
+            $this->details[$field] = $this->nullableInt($this->details[$field] ?? null);
+        }
+
         $this->validateOnly($errorKey, [
             $errorKey => $rules[$group][$field],
         ]);
 
         $value = $this->{$group}[$field] ?? null;
 
-        if (in_array($field, ['cash_registers_count', 'ticket_booths_count'], true)) {
-            $value = $this->nullableInt($value);
-        } elseif ($field === 'alcohol_permit') {
-            $value = (bool) $value;
-        } else {
+        if ($field !== 'administrative_region_id') {
             $value = $this->blankToNull($value);
         }
 

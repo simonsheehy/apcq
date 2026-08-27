@@ -188,6 +188,7 @@ return [
 
         'details.name' => 'nom du cinéma',
         'details.legal_company_name' => 'nom de la compagnie légale',
+        'details.administrative_region_id' => 'région administrative',
         'details.address' => 'adresse',
         'details.city' => 'ville',
         'details.postal_code' => 'code postal',
