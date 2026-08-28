@@ -26,7 +26,7 @@ class CinemaValidationRequestMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Mise à jour des informations — '.$this->cinema->name,
+            subject: 'Collecte d’information - Remplacement des projecteurs - Subvention SODEC',
         );
     }
 
