@@ -9,6 +9,7 @@ enum ProjectionType: string implements HasLabel
     case Standard = 'standard';
     case LaserPhosphor = 'laser_phosphor';
     case LaserRetrofit = 'laser_retrofit';
+    case LaserRGB = 'laser_rgb';
 
     public function getLabel(): string
     {
@@ -16,6 +17,7 @@ enum ProjectionType: string implements HasLabel
             self::Standard => 'Standard',
             self::LaserPhosphor => 'Laser Phosphore',
             self::LaserRetrofit => 'Laser Retrofit',
+            self::LaserRGB => 'Laser RGB',
         };
     }
 }
