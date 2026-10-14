@@ -12,6 +12,8 @@ uses(RefreshDatabase::class);
  */
 function startedProgress(): TrainingProgress
 {
+    test()->freezeSecond();
+
     $progress = TrainingProgress::create([
         'employee_id' => Employee::factory()->create()->id,
         'training_id' => Training::factory()->create()->id,
@@ -45,22 +47,44 @@ it('does not count skipped portions', function () {
         ->and($progress->last_position)->toBe(90);
 });
 
-it('ignores reports claiming more viewing than time allows', function () {
-    $progress = TrainingProgress::create([
-        'employee_id' => Employee::factory()->create()->id,
-        'training_id' => Training::factory()->create()->id,
-    ]);
+it('caps watched time to the real time elapsed since the previous report', function () {
+    $progress = startedProgress();
+    $progress->recordViewing([[0, 10]], 600, 10);
 
     $this->travel(10)->seconds();
     $progress->recordViewing([[0, 400]], 600, 400);
 
-    expect($progress->watched_seconds)->toBe(0)
+    expect($progress->watched_seconds)->toBe(45)
+        ->and($progress->watched_segments)->toEqual([[0, 45]])
         ->and($progress->last_position)->toBe(400);
+});
 
-    $this->travel(200)->seconds();
-    $progress->recordViewing([[0, 400]], 600, 400);
+it('catches up on progress that was reported late', function () {
+    $progress = startedProgress();
+    $progress->recordViewing([[0, 10]], 600, 10);
 
-    expect($progress->watched_seconds)->toBe(400);
+    $this->travel(10)->seconds();
+    $progress->recordViewing([[0, 80]], 600, 80);
+    $this->travel(10)->seconds();
+    $progress->recordViewing([[0, 90]], 600, 90);
+
+    expect($progress->watched_seconds)->toBe(80);
+
+    $this->travel(10)->seconds();
+    $progress->recordViewing([[0, 100]], 600, 100);
+
+    expect($progress->watched_seconds)->toBe(100);
+});
+
+it('does not let an idle record accept a whole video at once', function () {
+    $progress = startedProgress();
+    $progress->recordViewing([[0, 5]], 600, 5);
+
+    $this->travel(2)->days();
+    $progress->recordViewing([[0, 600]], 600, 600);
+
+    expect($progress->watched_seconds)->toBe(65)
+        ->and($progress->isCompleted())->toBeFalse();
 });
 
 it('clamps segments to the video duration', function () {
@@ -75,13 +99,13 @@ it('completes the training at the configured threshold', function (int $threshol
     config(['trainings.completion_threshold' => $threshold]);
     $progress = startedProgress();
 
-    $progress->recordViewing([[0, $watched]], 100, $watched);
+    $progress->recordViewing([[0, $watched]], 60, $watched);
 
     expect($progress->isCompleted())->toBe($isCompleted);
 })->with([
-    'below default threshold' => [90, 89, false],
-    'at default threshold' => [90, 90, true],
-    'custom threshold' => [50, 50, true],
+    'below default threshold' => [90, 53, false],
+    'at default threshold' => [90, 54, true],
+    'custom threshold' => [50, 30, true],
 ]);
 
 it('stays completed after rewatching from the start', function () {

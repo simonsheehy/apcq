@@ -14,7 +14,7 @@ class InvitationController extends Controller
 {
     public function show(Request $request, Employee $employee): View|RedirectResponse
     {
-        if ($redirect = $this->redirectIfUnusable($employee)) {
+        if ($redirect = $this->redirectIfUnusable($request, $employee)) {
             return $redirect;
         }
 
@@ -26,7 +26,7 @@ class InvitationController extends Controller
 
     public function store(Request $request, Employee $employee): RedirectResponse
     {
-        if ($redirect = $this->redirectIfUnusable($employee)) {
+        if ($redirect = $this->redirectIfUnusable($request, $employee)) {
             return $redirect;
         }
 
@@ -44,9 +44,14 @@ class InvitationController extends Controller
         return redirect()->route('portal.home');
     }
 
-    private function redirectIfUnusable(Employee $employee): ?RedirectResponse
+    private function redirectIfUnusable(Request $request, Employee $employee): ?RedirectResponse
     {
-        if ($employee->isDeactivated()) {
+        if (! $employee->hasInvitationFingerprint($request->query('fingerprint'))) {
+            return redirect()->route('portal.login')
+                ->withErrors(['email' => 'Ce lien d’invitation n’est plus valide. Demandez à l’APCQ de vous en envoyer un nouveau.']);
+        }
+
+        if ($employee->isDeactivated() || ! $employee->canAccessCinema()) {
             return redirect()->route('portal.login')
                 ->withErrors(['email' => 'Votre accès au Centre d’expertise a été désactivé.']);
         }

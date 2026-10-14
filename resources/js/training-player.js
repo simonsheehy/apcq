@@ -7,6 +7,8 @@
  */
 const REPORT_INTERVAL_MS = 10000;
 const MAX_CONTINUOUS_GAP_SECONDS = 2;
+const RETRY_DELAY_MS = 10000;
+const SESSION_EXPIRED_STATUSES = [401, 419];
 
 function mergeSegments(segments) {
     const sorted = segments.filter(([start, end]) => end > start).sort((a, b) => a[0] - b[0]);
@@ -60,6 +62,26 @@ function initTrainingPlayer(container) {
         }
     };
 
+    const showSessionExpired = () => {
+        if (progressLabel) {
+            progressLabel.textContent = 'Session expirée : rechargez la page pour enregistrer votre progression.';
+        }
+    };
+
+    let retryTimeout = null;
+
+    // Segments are resent in full, so a failed report is recovered by any later one.
+    const retryLater = () => {
+        hasUnsentProgress = true;
+
+        if (!retryTimeout) {
+            retryTimeout = setTimeout(() => {
+                retryTimeout = null;
+                report();
+            }, RETRY_DELAY_MS);
+        }
+    };
+
     const report = ({ keepalive = false } = {}) => {
         if (!duration || !hasUnsentProgress) {
             return;
@@ -79,11 +101,20 @@ function initTrainingPlayer(container) {
             },
             body: JSON.stringify({ segments, duration, position }),
         })
-            .then((response) => (response.ok ? response.json() : null))
-            .then((data) => data && updateProgressDisplay(data))
-            .catch(() => {
-                hasUnsentProgress = true;
-            });
+            .then((response) => {
+                if (response.ok) {
+                    return response.json().then(updateProgressDisplay);
+                }
+
+                if (SESSION_EXPIRED_STATUSES.includes(response.status)) {
+                    showSessionExpired();
+
+                    return;
+                }
+
+                retryLater();
+            })
+            .catch(retryLater);
     };
 
     player.getDuration().then((value) => {

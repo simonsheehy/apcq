@@ -19,11 +19,11 @@ class EnsureEmployeeIsActive
 
         if ($employee instanceof Employee && ! $employee->canLogIn()) {
             Auth::guard('employee')->logout();
-            $request->session()->invalidate();
+            $request->session()->regenerate();
             $request->session()->regenerateToken();
 
             return redirect()->route('portal.login')
-                ->withErrors(['email' => 'Votre accès au Centre d’expertise a été désactivé.']);
+                ->withErrors(['email' => 'Votre accès au Centre d’expertise n’est plus actif.']);
         }
 
         return $next($request);

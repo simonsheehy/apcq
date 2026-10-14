@@ -22,10 +22,12 @@ class EmployeeInvitation extends Notification implements ShouldQueue
 
     public function toMail(Employee $notifiable): MailMessage
     {
+        $cinemaName = $notifiable->cinema()->withTrashed()->value('name');
+
         return (new MailMessage)
             ->subject('Invitation au Centre d’expertise de l’APCQ')
             ->greeting("Bonjour {$notifiable->first_name},")
-            ->line("Vous êtes invité·e à accéder au Centre d’expertise de l’APCQ, la plateforme de formation des employés de {$notifiable->cinema->name}.")
+            ->line("Vous êtes invité·e à accéder au Centre d’expertise de l’APCQ, la plateforme de formation des employés de {$cinemaName}.")
             ->line('Pour activer votre accès, choisissez votre mot de passe :')
             ->action('Activer mon accès', $notifiable->invitationUrl())
             ->line('Ce lien est valide pendant '.config('trainings.invitation_expires_in_days').' jours.')

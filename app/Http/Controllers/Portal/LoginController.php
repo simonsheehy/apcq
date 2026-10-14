@@ -39,16 +39,34 @@ class LoginController extends Controller
 
         Auth::guard('employee')->user()->forceFill(['last_login_at' => now()])->save();
 
-        return redirect()->intended(route('portal.home'));
+        return redirect()->to($this->intendedPortalUrl($request));
     }
 
+    /**
+     * Logs out the employee only: invalidating the whole session would also log out an
+     * administrator signed in to the panel in the same browser.
+     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('employee')->logout();
 
-        $request->session()->invalidate();
+        $request->session()->regenerate();
         $request->session()->regenerateToken();
 
         return redirect()->route('portal.login');
+    }
+
+    /**
+     * The intended URL is shared with the administration panel, so it is only followed when it
+     * points into the portal.
+     */
+    private function intendedPortalUrl(Request $request): string
+    {
+        $intendedUrl = $request->session()->pull('url.intended');
+        $portalUrl = route('portal.home');
+
+        return is_string($intendedUrl) && str_starts_with($intendedUrl, $portalUrl)
+            ? $intendedUrl
+            : $portalUrl;
     }
 }

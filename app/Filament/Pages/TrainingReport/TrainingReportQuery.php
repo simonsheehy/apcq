@@ -54,8 +54,8 @@ class TrainingReportQuery
             ->selectSub($this->downloadedDocumentsCount(), 'downloaded_documents_count')
             ->selectSub($this->documentsCount(), 'documents_count');
 
-        if (filled($status = $filters['status'] ?? null)) {
-            $this->whereStatus($query, TrainingProgressStatus::from($status));
+        if ($status = TrainingProgressStatus::tryFrom((string) ($filters['status'] ?? ''))) {
+            $this->whereStatus($query, $status);
         }
 
         $direction = $sortDirection === 'desc' ? 'desc' : 'asc';
@@ -73,15 +73,17 @@ class TrainingReportQuery
     }
 
     /**
-     * Completion rate per cinema: completed trainings over (employees × trainings).
+     * Completion rate per cinema: completed trainings over (employees × trainings). Only employees
+     * who accepted their invitation count, since the others cannot access the trainings yet.
      *
      * @param  ReportFilters  $filters
-     * @return Collection<int, array{cinema_name: string, employees_count: int, assignments_count: int, completed_count: int, in_progress_count: int, completion_rate: int}>
+     * @return Collection<int, array{cinema_id: int, cinema_name: string, employees_count: int, assignments_count: int, completed_count: int, in_progress_count: int, completion_rate: int}>
      */
     public function summaryByCinema(array $filters = []): Collection
     {
         return $this->baseQuery($filters)
-            ->select('cinemas.name as cinema_name')
+            ->whereNotNull('employees.invitation_accepted_at')
+            ->select(['cinemas.id as cinema_id', 'cinemas.name as cinema_name'])
             ->selectRaw('COUNT(DISTINCT employees.id) as employees_count')
             ->selectRaw('COUNT(*) as assignments_count')
             ->selectRaw('SUM(CASE WHEN training_progress.completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed_count')
@@ -90,6 +92,7 @@ class TrainingReportQuery
             ->orderBy('cinemas.name')
             ->get()
             ->map(fn (object $row): array => [
+                'cinema_id' => (int) $row->cinema_id,
                 'cinema_name' => $row->cinema_name,
                 'employees_count' => (int) $row->employees_count,
                 'assignments_count' => (int) $row->assignments_count,
@@ -134,7 +137,10 @@ class TrainingReportQuery
     protected function baseQuery(array $filters): Builder
     {
         $query = DB::table('employees')
-            ->join('cinemas', 'cinemas.id', '=', 'employees.cinema_id')
+            ->join('cinemas', function (JoinClause $join): void {
+                $join->on('cinemas.id', '=', 'employees.cinema_id')
+                    ->whereNull('cinemas.deleted_at');
+            })
             ->crossJoin('trainings')
             ->leftJoin('training_progress', function (JoinClause $join): void {
                 $join->on('training_progress.employee_id', '=', 'employees.id')

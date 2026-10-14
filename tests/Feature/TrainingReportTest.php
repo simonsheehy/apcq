@@ -4,6 +4,7 @@ use App\Enums\TrainingProgressStatus;
 use App\Exports\TrainingReportExport;
 use App\Filament\Pages\TrainingReport\CinemaCompletionSummary;
 use App\Filament\Pages\TrainingReport\TrainingReport;
+use App\Filament\Pages\TrainingReport\TrainingReportQuery;
 use App\Models\Cinema;
 use App\Models\Employee;
 use App\Models\Training;
@@ -113,13 +114,13 @@ it('shows which documents each employee downloaded', function () {
 it('summarizes the completion rate per cinema', function () {
     $summary = Livewire::test(CinemaCompletionSummary::class)->instance()->getTableRecords();
 
-    expect($summary['Cinéma Beloeil'])
+    expect($summary[(string) $this->cinema->id])
         ->employees_count->toBe(1)
         ->assignments_count->toBe(2)
         ->completed_count->toBe(1)
         ->in_progress_count->toBe(1)
         ->completion_rate->toBe(50)
-        ->and($summary['Cinéma Saguenay']['completion_rate'])->toBe(0);
+        ->and($summary[(string) $this->otherCinema->id]['completion_rate'])->toBe(0);
 });
 
 it('exports the filtered report and the summary to excel', function () {
@@ -148,4 +149,52 @@ it('downloads the excel export from the page', function () {
     Livewire::test(TrainingReport::class)
         ->callAction('downloadExcel')
         ->assertFileDownloaded();
+});
+
+it('leaves out employees of deleted cinemas', function () {
+    $this->otherCinema->delete();
+
+    Livewire::test(TrainingReport::class)
+        ->assertCanNotSeeTableRecords([reportKey($this->marc, $this->audio)]);
+
+    expect(Livewire::test(CinemaCompletionSummary::class)->instance()->getTableRecords()->pluck('cinema_name')->all())
+        ->toBe(['Cinéma Beloeil']);
+});
+
+it('only counts employees who activated their access in the completion rate', function () {
+    Employee::factory()->for($this->cinema)->invited()->create();
+
+    $summary = Livewire::test(CinemaCompletionSummary::class)->instance()->getTableRecords();
+
+    expect($summary[(string) $this->cinema->id])
+        ->employees_count->toBe(1)
+        ->completion_rate->toBe(50);
+});
+
+it('keeps cinemas with the same name apart in the summary', function () {
+    $homonym = Cinema::factory()->create(['name' => 'Cinéma Beloeil']);
+    Employee::factory()->for($homonym)->create();
+
+    expect(Livewire::test(CinemaCompletionSummary::class)->instance()->getTableRecords())->toHaveCount(3);
+});
+
+it('ignores an unknown status filter', function () {
+    expect(app(TrainingReportQuery::class)->rows(['status' => 'pirate'])->count())
+        ->toBe(4);
+});
+
+it('writes names starting with an equals sign as plain text', function () {
+    $this->julie->update(['first_name' => '=HYPERLINK("http://example.com")', 'last_name' => '']);
+
+    $path = app(TrainingReportExport::class)->writeToTemp(['cinema_id' => $this->cinema->id]);
+
+    $zip = new ZipArchive;
+    $zip->open($path);
+    $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+    $zip->close();
+    unlink($path);
+
+    expect($sheetXml)
+        ->toContain('t="inlineStr"><is><t>=HYPERLINK(&quot;http://example.com&quot;)</t>')
+        ->not->toContain('<f>');
 });

@@ -43,17 +43,16 @@ class TrainingDocumentDownload extends Model
 
     public static function record(Employee $employee, Training $training, Media $document): self
     {
-        $download = static::firstOrNew([
+        $download = static::createOrFirst([
             'employee_id' => $employee->id,
             'media_id' => $document->id,
         ], [
             'training_id' => $training->id,
             'first_downloaded_at' => now(),
+            'last_downloaded_at' => now(),
         ]);
 
-        $download->download_count++;
-        $download->last_downloaded_at = now();
-        $download->save();
+        $download->increment('download_count', 1, ['last_downloaded_at' => now()]);
 
         return $download;
     }

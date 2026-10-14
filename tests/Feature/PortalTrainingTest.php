@@ -6,6 +6,7 @@ use App\Models\TrainingDocumentDownload;
 use App\Models\TrainingProgress;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -64,7 +65,7 @@ describe('training page', function () {
 
 describe('progress reporting', function () {
     it('records the watched segments', function () {
-        $training = Training::factory()->create();
+        $training = Training::factory()->create(['video_duration' => 100]);
 
         $this->postJson(progressUrl($training), [
             'segments' => [[0, 10.4]],
@@ -76,6 +77,29 @@ describe('progress reporting', function () {
             ->watched_seconds->toBe(10)
             ->last_position->toBe(10)
             ->video_duration->toBe(100);
+    });
+
+    it('ignores the duration reported by the player when the training has one', function () {
+        $training = Training::factory()->create(['video_duration' => 600]);
+
+        $this->postJson(progressUrl($training), [
+            'segments' => [[0, 1]],
+            'duration' => 1,
+            'position' => 1,
+        ])->assertOk()->assertJson(['progress_percent' => 0, 'completed' => false]);
+    });
+
+    it('locks the first duration reported when the training has none', function () {
+        Http::fake(['vimeo.com/*' => Http::response(status: 404)]);
+        $training = Training::factory()->create(['video_duration' => null]);
+
+        $this->postJson(progressUrl($training), ['segments' => [[0, 10]], 'duration' => 100, 'position' => 10])
+            ->assertJson(['progress_percent' => 10]);
+
+        $this->travel(1)->minutes();
+
+        $this->postJson(progressUrl($training), ['segments' => [[0, 10]], 'duration' => 10, 'position' => 10])
+            ->assertJson(['progress_percent' => 10, 'completed' => false]);
     });
 
     it('does not accept progress for an unpublished training', function () {
@@ -92,9 +116,9 @@ describe('progress reporting', function () {
         $training = Training::factory()->create();
 
         $this->postJson(progressUrl($training), [
-            'segments' => [[0]],
+            'segments' => [[0], ['a' => 1, 'b' => 2]],
             'duration' => 0,
-        ])->assertUnprocessable()->assertJsonValidationErrors(['segments.0', 'duration', 'position']);
+        ])->assertUnprocessable()->assertJsonValidationErrors(['segments.0', 'segments.1', 'duration', 'position']);
     });
 
     it('keeps the progress of each employee separate', function () {

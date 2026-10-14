@@ -28,6 +28,13 @@ class TrainingProgress extends Model
      */
     private const GROWTH_MARGIN_SECONDS = 15;
 
+    /**
+     * Most watched time a single report can add. The player reports every 10 seconds, so this
+     * leaves room to catch up after failed reports while preventing a whole video from being
+     * claimed at once after a long idle period.
+     */
+    private const MAX_GROWTH_PER_REPORT_SECONDS = 60;
+
     protected $table = 'training_progress';
 
     protected $fillable = [
@@ -87,31 +94,37 @@ class TrainingProgress extends Model
     /**
      * Merges the segments reported by the player into the watched portions and updates completion.
      *
-     * Total watched time cannot exceed the real time elapsed since the first report, at the maximum
-     * playback speed. A report that claims more is ignored; the player resends all its segments, so
-     * they are counted on a later report once enough time has passed.
+     * Watched time cannot grow faster than the real time elapsed since the previous change, at the
+     * maximum playback speed, nor by more than a fixed amount per report. Newly reported portions
+     * beyond that allowance are dropped (earliest kept first); the player resends all its
+     * segments, so they are counted on a later report.
      *
      * @param  list<array{0: float|int, 1: float|int}>  $segments
      */
-    public function recordViewing(array $segments, float $videoDuration, float $position): void
+    public function recordViewing(array $segments, int $videoDuration, float $position): void
     {
         $videoDuration = max(0, $videoDuration);
+        $knownSegments = $this->watched_segments ?? [];
+
+        $elapsedSeconds = $this->exists ? (int) floor($this->updated_at->diffInSeconds(now())) : 0;
+        $allowedGrowth = min(
+            $elapsedSeconds * self::MAX_PLAYBACK_RATE + self::GROWTH_MARGIN_SECONDS,
+            self::MAX_GROWTH_PER_REPORT_SECONDS,
+        );
+
+        $newPortions = self::subtractSegments(
+            self::mergeSegments(self::clampSegments($segments, $videoDuration)),
+            $knownSegments,
+        );
 
         $mergedSegments = self::mergeSegments([
-            ...($this->watched_segments ?? []),
-            ...self::clampSegments($segments, $videoDuration),
+            ...$knownSegments,
+            ...self::truncateToLength($newPortions, $allowedGrowth),
         ]);
-        $watchedSeconds = (int) floor(self::totalLength($mergedSegments));
 
-        $elapsedSeconds = $this->exists ? $this->created_at->diffInSeconds(now()) : 0;
-        $maximumWatchedSeconds = $elapsedSeconds * self::MAX_PLAYBACK_RATE + self::GROWTH_MARGIN_SECONDS;
-
-        if ($watchedSeconds <= $maximumWatchedSeconds) {
-            $this->watched_segments = $mergedSegments;
-            $this->watched_seconds = $watchedSeconds;
-        }
-
-        $this->video_duration = (int) round($videoDuration);
+        $this->watched_segments = $mergedSegments;
+        $this->watched_seconds = (int) floor(self::totalLength($mergedSegments));
+        $this->video_duration = $videoDuration;
         $this->last_position = (int) floor(min(max(0, $position), $videoDuration));
 
         if (! $this->isCompleted() && $this->progress_percent >= config('trainings.completion_threshold')) {
@@ -125,7 +138,7 @@ class TrainingProgress extends Model
      * @param  list<array{0: float|int, 1: float|int}>  $segments
      * @return list<array{0: float, 1: float}>
      */
-    private static function clampSegments(array $segments, float $videoDuration): array
+    private static function clampSegments(array $segments, int $videoDuration): array
     {
         return collect($segments)
             ->map(fn (array $segment): array => [
@@ -163,6 +176,63 @@ class TrainingProgress extends Model
         }
 
         return $merged;
+    }
+
+    /**
+     * Removes from each segment the portions already covered by the known segments.
+     *
+     * @param  list<array{0: float, 1: float}>  $segments
+     * @param  list<array{0: float, 1: float}>  $knownSegments
+     * @return list<array{0: float, 1: float}>
+     */
+    private static function subtractSegments(array $segments, array $knownSegments): array
+    {
+        $remaining = [];
+
+        foreach ($segments as [$start, $end]) {
+            foreach ($knownSegments as [$knownStart, $knownEnd]) {
+                if ($knownEnd <= $start || $knownStart >= $end) {
+                    continue;
+                }
+
+                if ($knownStart > $start) {
+                    $remaining[] = [$start, (float) $knownStart];
+                }
+
+                $start = max($start, (float) $knownEnd);
+
+                if ($start >= $end) {
+                    continue 2;
+                }
+            }
+
+            $remaining[] = [$start, $end];
+        }
+
+        return $remaining;
+    }
+
+    /**
+     * Keeps segments in chronological order until their total length reaches the limit.
+     *
+     * @param  list<array{0: float, 1: float}>  $segments
+     * @return list<array{0: float, 1: float}>
+     */
+    private static function truncateToLength(array $segments, float $maximumLength): array
+    {
+        $kept = [];
+
+        foreach ($segments as [$start, $end]) {
+            if ($maximumLength <= 0) {
+                break;
+            }
+
+            $length = min($end - $start, $maximumLength);
+            $kept[] = [$start, round($start + $length, 1)];
+            $maximumLength -= $length;
+        }
+
+        return $kept;
     }
 
     /**

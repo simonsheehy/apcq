@@ -18,10 +18,10 @@ class CinemaCompletionSummary extends TableWidget
     {
         return $table
             ->heading('Taux de complétion par cinéma')
-            ->description('Formations publiées, employés actifs.')
+            ->description('Formations publiées, employés ayant activé leur accès et non désactivés.')
             ->records(fn (): array => app(TrainingReportQuery::class)
                 ->summaryByCinema()
-                ->keyBy('cinema_name')
+                ->keyBy('cinema_id')
                 ->all())
             ->columns([
                 TextColumn::make('cinema_name')

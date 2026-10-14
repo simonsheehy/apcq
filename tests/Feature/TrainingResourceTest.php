@@ -7,6 +7,7 @@ use App\Filament\Resources\Trainings\Pages\ListTrainings;
 use App\Models\Training;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -35,6 +36,8 @@ it('filters trainings by status', function () {
 });
 
 it('creates a training as draft by default', function () {
+    Http::fake(['vimeo.com/*' => Http::response(['duration' => 600])]);
+
     Livewire::test(CreateTraining::class)
         ->fillForm([
             'title' => 'Gestion des salles',
@@ -50,6 +53,8 @@ it('creates a training as draft by default', function () {
 });
 
 it('extracts the vimeo id from a pasted url', function (string $input) {
+    Http::fake(['vimeo.com/*' => Http::response(['duration' => 600])]);
+
     Livewire::test(CreateTraining::class)
         ->fillForm([
             'title' => 'Qualité audio',
@@ -109,4 +114,34 @@ it('scopes published trainings in order', function () {
 
     expect(Training::published()->ordered()->pluck('id')->all())
         ->toBe([$first->id, $second->id]);
+});
+
+it('reads the video duration from vimeo when the video changes', function () {
+    Http::fake([
+        'vimeo.com/api/oembed.json*' => Http::response(['duration' => 312]),
+    ]);
+
+    $training = Training::factory()->create(['vimeo_video_id' => null, 'video_duration' => null]);
+    $training->update(['vimeo_video_id' => '76979871']);
+
+    expect($training->refresh()->video_duration)->toBe(312);
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), urlencode('https://vimeo.com/76979871')));
+});
+
+it('keeps a manually entered duration', function () {
+    $training = Training::factory()->create(['vimeo_video_id' => '76979871', 'video_duration' => 90]);
+
+    expect($training->video_duration)->toBe(90);
+    Http::assertNothingSent();
+});
+
+it('leaves the duration empty when vimeo does not answer', function () {
+    Http::fake([
+        'vimeo.com/*' => Http::response(status: 404),
+    ]);
+
+    $training = Training::factory()->create(['vimeo_video_id' => null, 'video_duration' => null]);
+    $training->update(['vimeo_video_id' => '123', 'video_duration' => null]);
+
+    expect($training->refresh()->video_duration)->toBeNull();
 });

@@ -5,6 +5,8 @@ namespace App\Exports;
 use App\Enums\TrainingProgressStatus;
 use App\Filament\Pages\TrainingReport\TrainingReportQuery;
 use Illuminate\Support\Str;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Cell\StringCell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
@@ -46,14 +48,14 @@ class TrainingReportExport
         $writer->addRow(Row::fromValues($this->rowHeaders(), $headerStyle));
 
         foreach ($this->report->rows($filters, $sortColumn, $sortDirection)->cursor() as $row) {
-            $writer->addRow(Row::fromValues($this->rowValues(TrainingReportQuery::present($row))));
+            $writer->addRow($this->dataRow($this->rowValues(TrainingReportQuery::present($row))));
         }
 
         $writer->addNewSheetAndMakeItCurrent()->setName('Sommaire par cinéma');
         $writer->addRow(Row::fromValues($this->summaryHeaders(), $headerStyle));
 
         foreach ($this->report->summaryByCinema($filters) as $summary) {
-            $writer->addRow(Row::fromValues([
+            $writer->addRow($this->dataRow([
                 $summary['cinema_name'],
                 $summary['employees_count'],
                 $summary['assignments_count'],
@@ -66,6 +68,20 @@ class TrainingReportExport
         $writer->close();
 
         return $path;
+    }
+
+    /**
+     * Writes text as plain strings: OpenSpout would otherwise turn a value starting with "=" (an
+     * employee name, a training title) into a spreadsheet formula.
+     *
+     * @param  list<string|int|null>  $values
+     */
+    protected function dataRow(array $values): Row
+    {
+        return new Row(array_map(
+            fn (string|int|null $value): Cell => is_string($value) ? new StringCell($value, null) : Cell::fromValue($value),
+            $values,
+        ));
     }
 
     /**

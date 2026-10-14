@@ -26,6 +26,7 @@ class TrainingFactory extends Factory
             'slug' => Str::slug($title).'-'.fake()->unique()->numberBetween(100, 999),
             'description' => fake()->paragraphs(2, true),
             'vimeo_video_id' => (string) fake()->numberBetween(100000000, 999999999),
+            'video_duration' => 600,
             'status' => TrainingStatus::Published,
             'sort_order' => fake()->numberBetween(0, 50),
         ];

@@ -83,7 +83,8 @@ class Employee extends Authenticatable
     {
         return $query
             ->whereNull('deactivated_at')
-            ->whereNotNull('invitation_accepted_at');
+            ->whereNotNull('invitation_accepted_at')
+            ->whereHas('cinema');
     }
 
     public function scopeWithStatus(Builder $query, EmployeeStatus $status): Builder
@@ -105,9 +106,17 @@ class Employee extends Authenticatable
         return $this->invitation_accepted_at !== null;
     }
 
+    /**
+     * Employees of a cinema removed from the administration lose access to the portal.
+     */
+    public function canAccessCinema(): bool
+    {
+        return $this->cinema()->exists();
+    }
+
     public function canLogIn(): bool
     {
-        return ! $this->isDeactivated() && $this->hasAcceptedInvitation();
+        return ! $this->isDeactivated() && $this->hasAcceptedInvitation() && $this->canAccessCinema();
     }
 
     public function sendInvitation(): void
@@ -122,8 +131,22 @@ class Employee extends Authenticatable
         return URL::temporarySignedRoute(
             'portal.invitation.show',
             now()->addDays(config('trainings.invitation_expires_in_days')),
-            ['employee' => $this],
+            ['employee' => $this, 'fingerprint' => $this->invitationFingerprint()],
         );
+    }
+
+    /**
+     * Ties an invitation link to the email and sending time, so resending the invitation or
+     * correcting the email invalidates links sent earlier.
+     */
+    public function invitationFingerprint(): string
+    {
+        return hash_hmac('sha256', $this->email.'|'.$this->invited_at?->getTimestamp(), config('app.key'));
+    }
+
+    public function hasInvitationFingerprint(?string $fingerprint): bool
+    {
+        return is_string($fingerprint) && hash_equals($this->invitationFingerprint(), $fingerprint);
     }
 
     public function acceptInvitation(string $password): void

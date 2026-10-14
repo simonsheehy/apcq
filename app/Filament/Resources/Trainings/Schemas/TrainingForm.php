@@ -60,7 +60,14 @@ class TrainingForm
                                         ->maxLength(255)
                                         ->regex('/^(\d+|https?:\/\/(www\.|player\.)?vimeo\.com\/.*\d+.*)$/')
                                         ->dehydrateStateUsing(fn (?string $state): ?string => self::extractVimeoVideoId($state)),
-                                ]),
+                                    TextInput::make('video_duration')
+                                        ->label('Durée de la vidéo (secondes)')
+                                        ->helperText('Récupérée automatiquement depuis Vimeo à l’enregistrement. À saisir manuellement si elle reste vide : le suivi du visionnement en dépend.')
+                                        ->integer()
+                                        ->minValue(1)
+                                        ->suffix('s'),
+                                ])
+                                ->columns(2),
                             Section::make('Documents complémentaires')
                                 ->schema([
                                     SpatieMediaLibraryFileUpload::make('documents')

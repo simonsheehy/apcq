@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -24,6 +26,7 @@ class Training extends Model implements HasMedia
         'slug',
         'description',
         'vimeo_video_id',
+        'video_duration',
         'status',
         'sort_order',
     ];
@@ -33,7 +36,44 @@ class Training extends Model implements HasMedia
         return [
             'status' => TrainingStatus::class,
             'sort_order' => 'integer',
+            'video_duration' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Training $training): void {
+            $hasManualDuration = $training->isDirty('video_duration') && filled($training->video_duration);
+
+            if ($training->isDirty('vimeo_video_id') && ! $hasManualDuration) {
+                $training->video_duration = self::fetchVimeoDuration($training->vimeo_video_id);
+            }
+        });
+    }
+
+    /**
+     * Reads the video length from Vimeo's oEmbed endpoint. Domain-restricted videos only answer
+     * when the request comes from an allowed domain, hence the Referer header.
+     */
+    public static function fetchVimeoDuration(?string $vimeoVideoId): ?int
+    {
+        if (blank($vimeoVideoId)) {
+            return null;
+        }
+
+        try {
+            $response = Http::timeout(5)
+                ->withHeaders(['Referer' => config('app.url')])
+                ->get('https://vimeo.com/api/oembed.json', [
+                    'url' => "https://vimeo.com/{$vimeoVideoId}",
+                ]);
+        } catch (ConnectionException) {
+            return null;
+        }
+
+        $duration = $response->successful() ? (int) $response->json('duration') : 0;
+
+        return $duration > 0 ? $duration : null;
     }
 
     public function progress(): HasMany

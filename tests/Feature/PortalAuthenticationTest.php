@@ -2,6 +2,7 @@
 
 use App\Models\Employee;
 use App\Models\User;
+use App\Notifications\EmployeeInvitation;
 use App\Notifications\EmployeeResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -208,5 +209,79 @@ describe('password reset', function () {
         ])->assertSessionHasErrors('email');
 
         expect(Hash::check('password', $employee->refresh()->password))->toBeTrue();
+    });
+});
+
+describe('invitation link fingerprint', function () {
+    it('invalidates earlier links when the invitation is resent', function () {
+        Notification::fake();
+        $employee = Employee::factory()->invited()->create(['invited_at' => now()->subDay()]);
+        $oldUrl = $employee->invitationUrl();
+
+        $employee->sendInvitation();
+
+        $this->get($oldUrl)->assertRedirect(route('portal.login'))->assertSessionHasErrors('email');
+        $this->get($employee->invitationUrl())->assertOk();
+    });
+
+    it('invalidates earlier links when the email is corrected', function () {
+        $employee = Employee::factory()->invited()->create(['email' => 'erreur@example.com']);
+        $oldUrl = $employee->invitationUrl();
+
+        $employee->update(['email' => 'julie@example.com']);
+
+        $this->post($oldUrl, [
+            'password' => 'nouveau-mot-de-passe',
+            'password_confirmation' => 'nouveau-mot-de-passe',
+        ])->assertRedirect(route('portal.login'));
+
+        expect($employee->refresh()->hasAcceptedInvitation())->toBeFalse();
+    });
+});
+
+describe('deleted cinema', function () {
+    it('blocks login for employees of a deleted cinema', function () {
+        $employee = Employee::factory()->create();
+        $employee->cinema->delete();
+
+        $this->post(route('portal.login.store'), [
+            'email' => $employee->email,
+            'password' => 'password',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertGuest('employee');
+    });
+
+    it('still sends the invitation email when the cinema was deleted', function () {
+        $employee = Employee::factory()->invited()->create();
+        $employee->cinema->delete();
+
+        $mail = (new EmployeeInvitation)->toMail($employee->refresh());
+
+        expect(implode(' ', $mail->introLines))->toContain($employee->cinema()->withTrashed()->value('name'));
+    });
+});
+
+describe('session sharing with the administration', function () {
+    it('keeps the administrator logged in when an employee logs out', function () {
+        $admin = User::factory()->create();
+        $adminSessionKey = auth()->guard('web')->getName();
+
+        $this->withSession([$adminSessionKey => $admin->id])
+            ->actingAs(Employee::factory()->create(), 'employee')
+            ->post(route('portal.logout'))
+            ->assertSessionHas($adminSessionKey, $admin->id);
+
+        $this->assertGuest('employee');
+    });
+
+    it('does not send an employee to an administration page after login', function () {
+        $employee = Employee::factory()->create();
+
+        $this->withSession(['url.intended' => url('/admin/rapport-formations')])
+            ->post(route('portal.login.store'), [
+                'email' => $employee->email,
+                'password' => 'password',
+            ])->assertRedirect(route('portal.home'));
     });
 });
