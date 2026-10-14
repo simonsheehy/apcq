@@ -7,10 +7,11 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\Portal;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TeamMemberController;
+use App\Http\Middleware\EnsureEmployeeIsActive;
 use App\Livewire\CinemaValidation;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -31,3 +32,21 @@ Route::get('/contact', ContactController::class)->name('contact');
 Route::get('/validation/{token}', CinemaValidation::class)
     ->middleware('throttle:180,1')
     ->name('cinemas.validation');
+    
+Route::prefix('formation')->name('portal.')->group(function (): void {
+    Route::middleware('guest:employee')->group(function (): void {
+        Route::get('/connexion', [Portal\LoginController::class, 'create'])->name('login');
+        Route::post('/connexion', [Portal\LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
+        Route::get('/mot-de-passe-oublie', [Portal\ForgotPasswordController::class, 'create'])->name('password.request');
+        Route::post('/mot-de-passe-oublie', [Portal\ForgotPasswordController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
+        Route::get('/reinitialiser/{token}', [Portal\ResetPasswordController::class, 'create'])->name('password.reset');
+        Route::post('/reinitialiser', [Portal\ResetPasswordController::class, 'store'])->middleware('throttle:10,1')->name('password.update');
+        Route::get('/invitation/{employee}', [Portal\InvitationController::class, 'show'])->middleware('signed')->name('invitation.show');
+        Route::post('/invitation/{employee}', [Portal\InvitationController::class, 'store'])->middleware(['signed', 'throttle:10,1'])->name('invitation.store');
+    });
+
+    Route::middleware(['auth:employee', EnsureEmployeeIsActive::class])->group(function (): void {
+        Route::get('/', Portal\HomeController::class)->name('home');
+        Route::post('/deconnexion', [Portal\LoginController::class, 'destroy'])->name('logout');
+    });
+});

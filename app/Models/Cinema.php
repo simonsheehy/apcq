@@ -79,6 +79,11 @@ class Cinema extends Model
         return $this->hasMany(Room::class);
     }
 
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
     public function scopeInformationValidated(Builder $query): Builder
     {
         return $query

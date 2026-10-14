@@ -14,4 +14,16 @@ return [
 
     'completion_threshold' => (int) env('TRAINING_COMPLETION_THRESHOLD', 90),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Invitation Lifetime
+    |--------------------------------------------------------------------------
+    |
+    | Number of days an employee invitation link stays valid. An expired
+    | invitation can be sent again from the administration panel.
+    |
+    */
+
+    'invitation_expires_in_days' => (int) env('TRAINING_INVITATION_EXPIRES_IN_DAYS', 7),
+
 ];
