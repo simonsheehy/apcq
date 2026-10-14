@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\URL;
@@ -52,6 +53,16 @@ class Employee extends Authenticatable
     public function cinema(): BelongsTo
     {
         return $this->belongsTo(Cinema::class);
+    }
+
+    public function trainingProgress(): HasMany
+    {
+        return $this->hasMany(TrainingProgress::class);
+    }
+
+    public function documentDownloads(): HasMany
+    {
+        return $this->hasMany(TrainingDocumentDownload::class);
     }
 
     protected function fullName(): Attribute

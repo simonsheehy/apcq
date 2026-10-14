@@ -83,15 +83,25 @@
         @else
             <div class="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-3">
                 @foreach($trainings as $training)
-                    <article class="group">
-                        <div class="{{ $moduleColors[$loop->index % count($moduleColors)] }} aspect-[16/8] overflow-hidden rounded-xl">
+                    @php($progress = $progressByTraining->get($training->id))
+                    <a href="{{ $training->portalUrl() }}" class="group block">
+                        <div class="{{ $moduleColors[$loop->index % count($moduleColors)] }} relative aspect-[16/8] overflow-hidden rounded-xl">
                             @if($training->hasMedia('cover'))
                                 <img src="{{ $training->getFirstMediaUrl('cover', 'card') }}" alt="" class="size-full object-cover transition duration-300 group-hover:scale-105">
                             @endif
+
+                            @if($progress?->isCompleted())
+                                <span class="absolute right-2 top-2 rounded-full bg-portal px-2.5 py-1 text-[0.65rem] font-semibold text-white">✓ Complétée</span>
+                            @elseif($progress)
+                                <span class="absolute right-2 top-2 rounded-full bg-portal px-2.5 py-1 text-[0.65rem] font-semibold text-white">{{ $progress->progress_percent }} %</span>
+                                <span class="absolute inset-x-0 bottom-0 h-1 bg-portal/30">
+                                    <span class="block h-full bg-portal" style="width: {{ $progress->progress_percent }}%"></span>
+                                </span>
+                            @endif
                         </div>
                         <p class="mt-3 text-xs uppercase tracking-wide underline underline-offset-2">Module {{ $loop->iteration }}</p>
-                        <h3 class="mt-1 text-sm font-semibold">{{ $training->title }}</h3>
-                    </article>
+                        <h3 class="mt-1 text-sm font-semibold group-hover:text-apcq">{{ $training->title }}</h3>
+                    </a>
                 @endforeach
             </div>
         @endif

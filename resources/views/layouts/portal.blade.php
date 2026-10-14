@@ -40,5 +40,6 @@
     <footer class="mx-auto w-full max-w-7xl px-4 py-8 text-xs text-white/50 sm:px-6">
         © {{ date('Y') }} Association des propriétaires de cinémas du Québec
     </footer>
+    @stack('scripts')
 </body>
 </html>
