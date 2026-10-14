@@ -31,12 +31,3 @@ Route::get('/contact', ContactController::class)->name('contact');
 Route::get('/validation/{token}', CinemaValidation::class)
     ->middleware('throttle:180,1')
     ->name('cinemas.validation');
-
-Route::get('/test-mail', function () {
-    Mail::raw('Test Mailgun depuis APCQ', function ($message): void {
-        $message->to('simon@nolero.ca')
-            ->subject('Test Mailgun');
-    });
-
-    return 'Courriel envoyé.';
-});
