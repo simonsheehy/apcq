@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="mx-auto w-full max-w-md px-4 py-10 sm:py-16">
-        <h1 class="font-display text-4xl leading-tight sm:text-5xl">@yield('title')</h1>
+        <h1 class="font-bold tracking-tight text-4xl leading-tight sm:text-5xl">@yield('title')</h1>
 
         @hasSection('intro')
             <p class="mt-4 text-sm text-white/70">@yield('intro')</p>
