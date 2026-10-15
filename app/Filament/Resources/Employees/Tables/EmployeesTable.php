@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Employees\Tables;
 
 use App\Enums\EmployeeStatus;
+use App\Filament\Actions\CopyEmployeeLoginLinkAction;
 use App\Models\Employee;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -69,6 +70,7 @@ class EmployeesTable
             ->recordActions([
                 EditAction::make(),
                 ActionGroup::make([
+                    CopyEmployeeLoginLinkAction::make(),
                     Action::make('resendInvitation')
                         ->label('Renvoyer l’invitation')
                         ->icon(Heroicon::OutlinedEnvelope)

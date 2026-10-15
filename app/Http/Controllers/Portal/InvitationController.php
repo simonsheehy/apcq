@@ -3,15 +3,21 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Concerns\RedirectsToIntendedPortalPage;
 use App\Models\Employee;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class InvitationController extends Controller
 {
+    use RedirectsToIntendedPortalPage;
+
+    /**
+     * Shows a confirmation button instead of logging in right away: mail scanners that open
+     * links ahead of the recipient must not use up the invitation.
+     */
     public function show(Request $request, Employee $employee): View|RedirectResponse
     {
         if ($redirect = $this->redirectIfUnusable($request, $employee)) {
@@ -30,18 +36,14 @@ class InvitationController extends Controller
             return $redirect;
         }
 
-        $validated = $request->validate([
-            'password' => ['required', 'confirmed', Password::defaults()],
-        ]);
-
-        $employee->acceptInvitation($validated['password']);
+        $employee->acceptInvitation();
 
         Auth::guard('employee')->login($employee);
         $request->session()->regenerate();
 
-        $employee->forceFill(['last_login_at' => now()])->save();
+        $employee->recordLogin();
 
-        return redirect()->route('portal.home');
+        return $this->redirectToIntendedPortalPage($request);
     }
 
     private function redirectIfUnusable(Request $request, Employee $employee): ?RedirectResponse
@@ -58,7 +60,7 @@ class InvitationController extends Controller
 
         if ($employee->hasAcceptedInvitation()) {
             return redirect()->route('portal.login')
-                ->with('status', 'Votre accès est déjà activé. Connectez-vous avec votre mot de passe.');
+                ->with('status', 'Votre accès est déjà activé. Demandez un lien de connexion ci-dessous pour accéder à vos formations.');
         }
 
         return null;

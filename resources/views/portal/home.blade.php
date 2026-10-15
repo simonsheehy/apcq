@@ -40,21 +40,6 @@
             'icon' => 'M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0 1 18 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 7.746 6 7.125v-1.5M4.875 8.25C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0 1 18 7.125v-1.5m1.125 2.625c-.621 0-1.125.504-1.125 1.125v1.5m2.625-2.625c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125M18 5.625v5.25M7.125 12h9.75m-9.75 0A1.125 1.125 0 0 1 6 10.875M7.125 12C6.504 12 6 12.504 6 13.125m0-2.25C6 11.496 5.496 12 4.875 12M18 10.875c0 .621-.504 1.125-1.125 1.125M18 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m-12 5.25v-5.25m0 5.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125m-12 0v-1.5c0-.621-.504-1.125-1.125-1.125M18 18.375v-5.25m0 5.25v-1.5c0-.621.504-1.125 1.125-1.125M18 13.125v1.5c0 .621.504 1.125 1.125 1.125M18 13.125c0-.621.504-1.125 1.125-1.125M6 13.125v1.5c0 .621-.504 1.125-1.125 1.125M6 13.125C6 12.504 5.496 12 4.875 12m-1.5 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M19.125 12h1.5m0 0c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h1.5m14.25 0h1.5',
         ],
     ];
-
-    $faqs = [
-        [
-            'question' => 'Combien de temps dure le programme ?',
-            'answer' => 'Chaque module dure quelques minutes. Vous pouvez les suivre à votre rythme, en une ou plusieurs fois : votre progression est enregistrée.',
-        ],
-        [
-            'question' => 'Qui peut participer ?',
-            'answer' => 'Les employés des cinémas membres de l’APCQ, sur invitation. Votre gestionnaire peut demander un accès pour vous auprès de l’APCQ.',
-        ],
-        [
-            'question' => 'Que se passe-t-il si je manque une séance d’entraînement prévue ?',
-            'answer' => 'Aucun problème : tous les modules restent accessibles en tout temps. Reprenez simplement la vidéo là où vous l’aviez laissée.',
-        ],
-    ];
 @endphp
 
 @section('content')
@@ -62,7 +47,13 @@
     <section class="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 pb-16 pt-4 sm:px-6 md:grid-cols-2 md:pb-24">
         <div>
             <h1 class="font-bold tracking-tight text-6xl leading-[0.95] sm:text-7xl lg:text-8xl">Centre d’expertise</h1>
-            <p class="mt-6 text-white/80">Bonjour {{ auth('employee')->user()->first_name }}, pour vous aider à exceller.</p>
+            <p class="mt-6 text-white/80">
+                @auth('employee')
+                    Bonjour {{ auth('employee')->user()->first_name }}, pour vous aider à exceller.
+                @else
+                    Pour vous aider à exceller.
+                @endauth
+            </p>
             <a href="#modules" class="mt-10 inline-flex min-w-36 items-center justify-center rounded-full bg-white px-8 py-2.5 text-sm font-semibold text-portal transition hover:bg-apcq hover:text-white">
                 Débuter
             </a>
@@ -89,6 +80,15 @@
                             @if($training->hasMedia('cover'))
                                 <img src="{{ $training->getFirstMediaUrl('cover', 'card') }}" alt="" class="size-full object-cover transition duration-300 group-hover:scale-105">
                             @endif
+
+                            @guest('employee')
+                                <span class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-portal px-2.5 py-1 text-[0.65rem] font-semibold text-white">
+                                    <svg class="size-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+                                    </svg>
+                                    Connexion requise
+                                </span>
+                            @endguest
 
                             @if($progress?->isCompleted())
                                 <span class="absolute right-2 top-2 rounded-full bg-portal px-2.5 py-1 text-[0.65rem] font-semibold text-white">✓ Complétée</span>
@@ -154,19 +154,21 @@
     </section>
 
     {{-- FAQ --}}
-    <section class="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 md:pb-28">
-        <h2 class="font-bold tracking-tight text-5xl">FAQs</h2>
+    @if($faqs->isNotEmpty())
+        <section class="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 md:pb-28">
+            <h2 class="font-bold tracking-tight text-5xl">FAQs</h2>
 
-        <div class="mx-auto mt-10 grid max-w-5xl gap-6 md:grid-cols-3">
-            @foreach($faqs as $faq)
-                <article class="flex flex-col rounded-lg bg-portal-sky p-6 md:min-h-80">
-                    <x-portal.arrow-badge />
-                    <h3 class="mt-5 font-semibold text-lg leading-snug">{{ $faq['question'] }}</h3>
-                    <p class="mt-auto pt-8 text-xs leading-relaxed text-white/90">{{ $faq['answer'] }}</p>
-                </article>
-            @endforeach
-        </div>
-    </section>
+            <div class="mx-auto mt-10 flex max-w-5xl flex-wrap justify-center gap-6">
+                @foreach($faqs as $faq)
+                    <article class="flex w-full flex-col rounded-lg bg-portal-sky p-6 md:min-h-80 md:w-[calc((100%-3rem)/3)]">
+                        <x-portal.arrow-badge />
+                        <h3 class="mt-5 font-semibold text-lg leading-snug">{{ $faq->question }}</h3>
+                        <p class="mt-auto pt-8 text-xs leading-relaxed text-white/90">{!! nl2br(e($faq->answer)) !!}</p>
+                    </article>
+                @endforeach
+            </div>
+        </section>
+    @endif
 
     {{-- Call to action --}}
     <section class="relative overflow-hidden bg-white text-portal">

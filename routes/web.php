@@ -34,6 +34,8 @@ Route::get('/validation/{token}', CinemaValidation::class)
     ->name('cinemas.validation');
 
 Route::prefix('formation')->name('portal.')->group(function (): void {
+    Route::get('/', Portal\HomeController::class)->name('home');
+
     Route::middleware('guest:employee')->group(function (): void {
         Route::get('/connexion', [Portal\LoginController::class, 'create'])->name('login');
         Route::post('/connexion', [Portal\LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
@@ -41,12 +43,14 @@ Route::prefix('formation')->name('portal.')->group(function (): void {
         Route::post('/mot-de-passe-oublie', [Portal\ForgotPasswordController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
         Route::get('/reinitialiser/{token}', [Portal\ResetPasswordController::class, 'create'])->name('password.reset');
         Route::post('/reinitialiser', [Portal\ResetPasswordController::class, 'store'])->middleware('throttle:10,1')->name('password.update');
+        Route::post('/lien-de-connexion', [Portal\LoginLinkController::class, 'store'])->middleware('throttle:5,1')->name('login-link.store');
+        Route::get('/lien-de-connexion/{employee}/{token}', [Portal\LoginLinkController::class, 'show'])->name('login-link.show');
+        Route::post('/lien-de-connexion/{employee}/{token}', [Portal\LoginLinkController::class, 'consume'])->middleware('throttle:10,1')->name('login-link.consume');
         Route::get('/invitation/{employee}', [Portal\InvitationController::class, 'show'])->middleware('signed')->name('invitation.show');
         Route::post('/invitation/{employee}', [Portal\InvitationController::class, 'store'])->middleware(['signed', 'throttle:10,1'])->name('invitation.store');
     });
 
     Route::middleware(['auth:employee', EnsureEmployeeIsActive::class])->group(function (): void {
-        Route::get('/', Portal\HomeController::class)->name('home');
         Route::get('/modules/{publishedTraining}', [Portal\TrainingController::class, 'show'])->name('trainings.show');
         Route::post('/modules/{publishedTraining}/progression', [Portal\TrainingProgressController::class, 'store'])->middleware('throttle:30,1')->name('trainings.progress');
         Route::get('/modules/{publishedTraining}/documents/{document}', [Portal\TrainingDocumentController::class, 'show'])->name('trainings.documents.show');

@@ -28,9 +28,10 @@ class EmployeeInvitation extends Notification implements ShouldQueue
             ->subject('Invitation au Centre d’expertise de l’APCQ')
             ->greeting("Bonjour {$notifiable->first_name},")
             ->line("Vous êtes invité·e à accéder au Centre d’expertise de l’APCQ, la plateforme de formation des employés de {$cinemaName}.")
-            ->line('Pour activer votre accès, choisissez votre mot de passe :')
-            ->action('Activer mon accès', $notifiable->invitationUrl())
-            ->line('Ce lien est valide pendant '.config('trainings.invitation_expires_in_days').' jours.')
+            ->line('Cliquez sur le bouton ci-dessous pour accéder directement à vos formations :')
+            ->action('Accéder au Centre d’expertise', $notifiable->invitationUrl())
+            ->line('Ce lien est personnel : ne le transférez pas. Il fonctionne une seule fois et reste valide pendant '.config('trainings.invitation_expires_in_days').' jours.')
+            ->line('Pour vos prochaines visites, demandez simplement un lien de connexion avec votre adresse courriel sur '.route('portal.login').'.')
             ->salutation("Au plaisir,\nL’équipe de l’APCQ");
     }
 }

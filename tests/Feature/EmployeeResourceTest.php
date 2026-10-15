@@ -2,6 +2,7 @@
 
 use App\Enums\EmployeeStatus;
 use App\Filament\Resources\Employees\Pages\CreateEmployee;
+use App\Filament\Resources\Employees\Pages\EditEmployee;
 use App\Filament\Resources\Employees\Pages\ListEmployees;
 use App\Models\Cinema;
 use App\Models\Employee;
@@ -99,4 +100,69 @@ it('filters employees by cinema and status', function () {
         ->filterTable('status', EmployeeStatus::Invited->value)
         ->assertCanSeeTableRecords([$invited])
         ->assertCanNotSeeTableRecords([$active, $deactivated]);
+});
+
+describe('login link for administrators', function () {
+    it('copies a new single-use login link for an active employee', function () {
+        $this->freezeSecond();
+        $employee = Employee::factory()->create();
+
+        Livewire::test(ListEmployees::class)
+            ->callTableAction('copyLoginLink', $employee)
+            ->assertNotified('Lien de connexion copié dans le presse-papiers');
+
+        expect($employee->refresh())
+            ->login_token_hash->not->toBeNull()
+            ->and($employee->login_token_expires_at->equalTo(now()->addHours(24)))->toBeTrue();
+    });
+
+    it('gives a link that logs the employee in once', function () {
+        $employee = Employee::factory()->create();
+        $url = $employee->loginUrlForAdministrator();
+
+        auth()->logout();
+
+        $this->post($url)->assertRedirect(route('portal.home'));
+        $this->assertAuthenticatedAs($employee, 'employee');
+
+        $this->post(route('portal.logout'));
+        $this->post($url)->assertRedirect(route('portal.login'));
+    });
+
+    it('replaces a link the employee requested by email', function () {
+        $employee = Employee::factory()->create();
+        $emailedUrl = $employee->createLoginUrl(now()->addMinutes(15));
+
+        $employee->loginUrlForAdministrator();
+
+        $this->post($emailedUrl)->assertRedirect(route('portal.login'));
+        $this->assertGuest('employee');
+    });
+
+    it('gives the invitation link while the invitation is pending', function () {
+        $employee = Employee::factory()->invited()->create();
+
+        expect($employee->loginUrlForAdministrator())->toBe($employee->invitationUrl())
+            ->and($employee->refresh()->login_token_hash)->toBeNull();
+    });
+
+    it('is not offered for deactivated employees or deleted cinemas', function () {
+        $deactivated = Employee::factory()->deactivated()->create();
+        $withoutCinema = Employee::factory()->create();
+        $withoutCinema->cinema->delete();
+
+        Livewire::test(ListEmployees::class)
+            ->assertTableActionHidden('copyLoginLink', $deactivated)
+            ->assertTableActionHidden('copyLoginLink', $withoutCinema);
+    });
+
+    it('is available from the edit page', function () {
+        $employee = Employee::factory()->create();
+
+        Livewire::test(EditEmployee::class, ['record' => $employee->getRouteKey()])
+            ->callAction('copyLoginLink')
+            ->assertNotified();
+
+        expect($employee->refresh()->login_token_hash)->not->toBeNull();
+    });
 });

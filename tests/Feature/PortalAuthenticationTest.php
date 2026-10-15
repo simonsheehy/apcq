@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Employee;
+use App\Models\Training;
 use App\Models\User;
 use App\Notifications\EmployeeInvitation;
 use App\Notifications\EmployeeResetPassword;
@@ -12,34 +13,69 @@ use Illuminate\Support\Facades\Password;
 uses(RefreshDatabase::class);
 
 describe('access', function () {
-    it('redirects guests to the portal login', function () {
-        $this->get(route('portal.home'))->assertRedirect(route('portal.login'));
+    it('shows the list of trainings to everyone', function () {
+        $training = Training::factory()->create(['title' => 'Qualité audio']);
+
+        $this->get(route('portal.home'))
+            ->assertOk()
+            ->assertSee('Qualité audio')
+            ->assertSee($training->portalUrl(), escape: false)
+            ->assertSee('Connexion requise')
+            ->assertSee(route('portal.login'), escape: false);
     });
 
-    it('does not let an admin user into the portal', function () {
+    it('requires a login to open a training', function () {
+        $training = Training::factory()->create();
+
+        $this->get($training->portalUrl())->assertRedirect(route('portal.login'));
+    });
+
+    it('does not let an admin user into a training', function () {
+        $training = Training::factory()->create();
+
         $this->actingAs(User::factory()->create())
-            ->get(route('portal.home'))
+            ->get($training->portalUrl())
             ->assertRedirect(route('portal.login'));
     });
 
-    it('shows the portal home to an active employee', function () {
+    it('greets a logged in employee and hides the login prompts', function () {
+        Training::factory()->create();
         $employee = Employee::factory()->create(['first_name' => 'Julie']);
 
         $this->actingAs($employee, 'employee')
             ->get(route('portal.home'))
             ->assertOk()
-            ->assertSee('Bonjour Julie');
+            ->assertSee('Bonjour Julie')
+            ->assertDontSee('Connexion requise')
+            ->assertDontSee('Se connecter');
     });
 
     it('logs out an employee deactivated during their session', function () {
         $employee = Employee::factory()->deactivated()->create();
 
         $this->actingAs($employee, 'employee')
-            ->get(route('portal.home'))
+            ->get(Training::factory()->create()->portalUrl())
             ->assertRedirect(route('portal.login'));
 
         $this->assertGuest('employee');
     });
+
+    it('brings the employee back to the training they wanted after logging in', function (string $method) {
+        $employee = Employee::factory()->create();
+        $training = Training::factory()->create();
+
+        $this->get($training->portalUrl())->assertRedirect(route('portal.login'));
+
+        $response = match ($method) {
+            'password' => $this->post(route('portal.login.store'), [
+                'password_email' => $employee->email,
+                'password' => 'password',
+            ]),
+            'login link' => $this->post($employee->createLoginUrl(now()->addMinutes(15))),
+        };
+
+        $response->assertRedirect($training->portalUrl());
+    })->with(['password', 'login link']);
 });
 
 describe('login', function () {
@@ -47,7 +83,7 @@ describe('login', function () {
         $employee = Employee::factory()->create();
 
         $this->post(route('portal.login.store'), [
-            'email' => $employee->email,
+            'password_email' => $employee->email,
             'password' => 'password',
         ])->assertRedirect(route('portal.home'));
 
@@ -59,9 +95,9 @@ describe('login', function () {
         $employee = Employee::factory()->create();
 
         $this->post(route('portal.login.store'), [
-            'email' => $employee->email,
+            'password_email' => $employee->email,
             'password' => 'wrong-password',
-        ])->assertSessionHasErrors('email');
+        ])->assertSessionHasErrors('password');
 
         $this->assertGuest('employee');
     });
@@ -70,9 +106,9 @@ describe('login', function () {
         $employee = Employee::factory()->deactivated()->create();
 
         $this->post(route('portal.login.store'), [
-            'email' => $employee->email,
+            'password_email' => $employee->email,
             'password' => 'password',
-        ])->assertSessionHasErrors('email');
+        ])->assertSessionHasErrors('password');
 
         $this->assertGuest('employee');
     });
@@ -80,27 +116,26 @@ describe('login', function () {
     it('logs out', function () {
         $this->actingAs(Employee::factory()->create(), 'employee')
             ->post(route('portal.logout'))
-            ->assertRedirect(route('portal.login'));
+            ->assertRedirect(route('portal.home'));
 
         $this->assertGuest('employee');
     });
 });
 
 describe('invitation', function () {
-    it('lets an invited employee choose a password', function () {
+    it('logs an invited employee in directly, without a password', function () {
         $employee = Employee::factory()->invited()->create();
         $url = $employee->invitationUrl();
 
         $this->get($url)->assertOk()->assertSee($employee->email);
+        $this->assertGuest('employee');
 
-        $this->post($url, [
-            'password' => 'nouveau-mot-de-passe',
-            'password_confirmation' => 'nouveau-mot-de-passe',
-        ])->assertRedirect(route('portal.home'));
+        $this->post($url)->assertRedirect(route('portal.home'));
 
         $employee->refresh();
         expect($employee->hasAcceptedInvitation())->toBeTrue()
-            ->and(Hash::check('nouveau-mot-de-passe', $employee->password))->toBeTrue();
+            ->and($employee->password)->toBeNull()
+            ->and($employee->last_login_at)->not->toBeNull();
         $this->assertAuthenticatedAs($employee, 'employee');
     });
 
@@ -122,37 +157,24 @@ describe('invitation', function () {
         $this->get($url)->assertForbidden();
     });
 
-    it('cannot be reused once accepted', function () {
+    it('only works once', function () {
         $employee = Employee::factory()->invited()->create();
         $url = $employee->invitationUrl();
-        $employee->acceptInvitation('premier-mot-de-passe');
 
-        $this->post($url, [
-            'password' => 'pirate-mot-de-passe',
-            'password_confirmation' => 'pirate-mot-de-passe',
-        ])->assertRedirect(route('portal.login'));
+        $this->post($url)->assertRedirect(route('portal.home'));
+        $this->post(route('portal.logout'));
 
-        expect(Hash::check('premier-mot-de-passe', $employee->refresh()->password))->toBeTrue();
+        $this->post($url)->assertRedirect(route('portal.login'));
+        $this->assertGuest('employee');
     });
 
     it('cannot be used by a deactivated employee', function () {
         $employee = Employee::factory()->invited()->deactivated()->create();
 
-        $this->post($employee->invitationUrl(), [
-            'password' => 'nouveau-mot-de-passe',
-            'password_confirmation' => 'nouveau-mot-de-passe',
-        ])->assertRedirect(route('portal.login'));
+        $this->post($employee->invitationUrl())->assertRedirect(route('portal.login'));
 
         expect($employee->refresh()->hasAcceptedInvitation())->toBeFalse();
-    });
-
-    it('requires a confirmed password', function () {
-        $employee = Employee::factory()->invited()->create();
-
-        $this->post($employee->invitationUrl(), [
-            'password' => 'nouveau-mot-de-passe',
-            'password_confirmation' => 'autre-chose',
-        ])->assertSessionHasErrors('password');
+        $this->assertGuest('employee');
     });
 });
 
@@ -230,10 +252,7 @@ describe('invitation link fingerprint', function () {
 
         $employee->update(['email' => 'julie@example.com']);
 
-        $this->post($oldUrl, [
-            'password' => 'nouveau-mot-de-passe',
-            'password_confirmation' => 'nouveau-mot-de-passe',
-        ])->assertRedirect(route('portal.login'));
+        $this->post($oldUrl)->assertRedirect(route('portal.login'));
 
         expect($employee->refresh()->hasAcceptedInvitation())->toBeFalse();
     });
@@ -245,9 +264,9 @@ describe('deleted cinema', function () {
         $employee->cinema->delete();
 
         $this->post(route('portal.login.store'), [
-            'email' => $employee->email,
+            'password_email' => $employee->email,
             'password' => 'password',
-        ])->assertSessionHasErrors('email');
+        ])->assertSessionHasErrors('password');
 
         $this->assertGuest('employee');
     });
@@ -280,7 +299,7 @@ describe('session sharing with the administration', function () {
 
         $this->withSession(['url.intended' => url('/admin/rapport-formations')])
             ->post(route('portal.login.store'), [
-                'email' => $employee->email,
+                'password_email' => $employee->email,
                 'password' => 'password',
             ])->assertRedirect(route('portal.home'));
     });

@@ -16,7 +16,7 @@
 </head>
 <body class="flex min-h-screen flex-col bg-portal font-sans text-white antialiased">
     <header class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-6 sm:px-6">
-        <a href="{{ auth('employee')->check() ? route('portal.home') : route('portal.login') }}" class="inline-flex h-12 md:h-16">
+        <a href="{{ route('portal.home') }}" class="inline-flex h-12 md:h-16">
             <img src="{{ asset('images/logo.png') }}" alt="APCQ" class="h-full w-auto object-contain">
         </a>
 
@@ -30,6 +30,12 @@
                     </button>
                 </form>
             </div>
+        @else
+            @unless(request()->routeIs('portal.login'))
+                <a href="{{ route('portal.login') }}" class="rounded-full border border-white/30 px-4 py-1.5 text-sm font-semibold transition hover:border-white hover:bg-white hover:text-portal">
+                    Se connecter
+                </a>
+            @endunless
         @endauth
     </header>
 

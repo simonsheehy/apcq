@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Portal\Concerns\RedirectsToIntendedPortalPage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use Illuminate\View\View;
 
 class LoginController extends Controller
 {
+    use RedirectsToIntendedPortalPage;
+
     public function create(): View
     {
         return view('portal.auth.login');
@@ -19,27 +22,28 @@ class LoginController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $validated = $request->validate([
+            'password_email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
         $isAuthenticated = Auth::guard('employee')->attempt([
-            ...$credentials,
+            'email' => $validated['password_email'],
+            'password' => $validated['password'],
             fn (Builder $query) => $query->active(),
         ], $request->boolean('remember'));
 
         if (! $isAuthenticated) {
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'password' => __('auth.failed'),
             ]);
         }
 
         $request->session()->regenerate();
 
-        Auth::guard('employee')->user()->forceFill(['last_login_at' => now()])->save();
+        Auth::guard('employee')->user()->recordLogin();
 
-        return redirect()->to($this->intendedPortalUrl($request));
+        return $this->redirectToIntendedPortalPage($request);
     }
 
     /**
@@ -53,20 +57,6 @@ class LoginController extends Controller
         $request->session()->regenerate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('portal.login');
-    }
-
-    /**
-     * The intended URL is shared with the administration panel, so it is only followed when it
-     * points into the portal.
-     */
-    private function intendedPortalUrl(Request $request): string
-    {
-        $intendedUrl = $request->session()->pull('url.intended');
-        $portalUrl = route('portal.home');
-
-        return is_string($intendedUrl) && str_starts_with($intendedUrl, $portalUrl)
-            ? $intendedUrl
-            : $portalUrl;
+        return redirect()->route('portal.home');
     }
 }

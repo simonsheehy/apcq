@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Enums\EmployeeStatus;
 use App\Notifications\EmployeeInvitation;
+use App\Notifications\EmployeeLoginLink;
 use App\Notifications\EmployeeResetPassword;
+use Carbon\CarbonInterface;
 use Database\Factories\EmployeeFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class Employee extends Authenticatable
 {
@@ -37,6 +40,7 @@ class Employee extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'login_token_hash',
     ];
 
     protected function casts(): array
@@ -47,6 +51,7 @@ class Employee extends Authenticatable
             'invitation_accepted_at' => 'datetime',
             'deactivated_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'login_token_expires_at' => 'datetime',
         ];
     }
 
@@ -111,7 +116,7 @@ class Employee extends Authenticatable
      */
     public function canAccessCinema(): bool
     {
-        return $this->cinema()->exists();
+        return $this->cinema !== null;
     }
 
     public function canLogIn(): bool
@@ -149,12 +154,74 @@ class Employee extends Authenticatable
         return is_string($fingerprint) && hash_equals($this->invitationFingerprint(), $fingerprint);
     }
 
-    public function acceptInvitation(string $password): void
+    public function acceptInvitation(): void
+    {
+        $this->forceFill(['invitation_accepted_at' => now()])->save();
+    }
+
+    /**
+     * Emails a single-use login link, valid for a few minutes.
+     */
+    public function sendLoginLink(): void
+    {
+        $this->notify(new EmployeeLoginLink(
+            $this->createLoginUrl(now()->addMinutes(config('trainings.login_link_expires_in_minutes'))),
+        ));
+    }
+
+    /**
+     * Link an administrator can copy and send to the employee: the invitation link while the
+     * invitation is pending, otherwise a new single-use login link valid for a day.
+     */
+    public function loginUrlForAdministrator(): string
+    {
+        if (! $this->hasAcceptedInvitation()) {
+            return $this->invitationUrl();
+        }
+
+        return $this->createLoginUrl(now()->addHours(config('trainings.administrator_login_link_expires_in_hours')));
+    }
+
+    /**
+     * Creates a single-use login link. Only a hash of the token is stored, and creating a new
+     * link invalidates the previous one.
+     */
+    public function createLoginUrl(CarbonInterface $expiresAt): string
+    {
+        $token = Str::random(64);
+
+        $this->forceFill([
+            'login_token_hash' => hash('sha256', $token),
+            'login_token_expires_at' => $expiresAt,
+        ])->save();
+
+        return route('portal.login-link.show', [
+            'employee' => $this,
+            'token' => $token,
+        ]);
+    }
+
+    public function hasValidLoginToken(string $token): bool
+    {
+        return $this->login_token_hash !== null
+            && $this->login_token_expires_at?->isFuture()
+            && hash_equals($this->login_token_hash, hash('sha256', $token));
+    }
+
+    /**
+     * Uses up the login token: the link cannot be used again.
+     */
+    public function consumeLoginToken(): void
     {
         $this->forceFill([
-            'password' => $password,
-            'invitation_accepted_at' => now(),
+            'login_token_hash' => null,
+            'login_token_expires_at' => null,
         ])->save();
+    }
+
+    public function recordLogin(): void
+    {
+        $this->forceFill(['last_login_at' => now()])->save();
     }
 
     public function deactivate(): void

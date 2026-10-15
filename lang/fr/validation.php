@@ -178,6 +178,9 @@ return [
         'entreprise' => 'entreprise',
         'sujet' => 'sujet',
         'message' => 'message',
+        'email' => 'courriel',
+        'password_email' => 'courriel',
+        'password' => 'mot de passe',
 
         'personal.primary_contact_name' => 'nom du contact primaire',
         'personal.primary_contact_phone' => 'téléphone du contact primaire',
