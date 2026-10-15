@@ -61,7 +61,7 @@
 
         <div class="relative mx-auto aspect-[4/3] w-full max-w-xl">
             <div class="absolute inset-y-0 left-[8%] right-0 -rotate-6 rounded-[2.5rem] bg-white/90"></div>
-            <img src="{{ asset('images/cinema.jpg') }}" alt="" class="absolute inset-0 size-full rounded-[2.5rem] object-cover shadow-2xl">
+            <img src="{{ asset('images/formations.png') }}" alt="" class="absolute inset-0 size-full rounded-[2.5rem] object-cover shadow-2xl">
         </div>
     </section>
 
