@@ -172,7 +172,7 @@
 
     {{-- Call to action --}}
     <section class="relative overflow-hidden bg-white text-portal">
-        <div class="absolute -top-6 left-0 h-40 w-2/3 -rotate-3 bg-portal-lime sm:w-1/2 md:h-56" aria-hidden="true"></div>
+        <div class="absolute -inset-x-16 -top-10 h-40 -rotate-2 bg-portal-lime md:h-56" aria-hidden="true"></div>
 
         <div class="relative mx-auto grid w-full max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-24">
             <div class="relative mx-auto hidden aspect-[4/5] w-full max-w-sm md:block">
