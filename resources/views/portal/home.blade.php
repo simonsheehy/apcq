@@ -131,7 +131,7 @@
         </ul>
     </section>
 
-    {{-- Resources --}}
+    {{-- Resources
     <section class="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 md:pb-28">
         <h2 class="font-bold tracking-tight text-4xl leading-tight sm:text-5xl">Ressources de<br>formation</h2>
 
@@ -151,7 +151,7 @@
                 </article>
             @endforeach
         </div>
-    </section>
+    </section> --}}
 
     {{-- FAQ --}}
     @if($faqs->isNotEmpty())
