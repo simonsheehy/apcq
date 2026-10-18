@@ -54,6 +54,8 @@ Route::prefix('formation')->name('portal.')->group(function (): void {
         Route::get('/modules/{publishedTraining}', [Portal\TrainingController::class, 'show'])->name('trainings.show');
         Route::post('/modules/{publishedTraining}/progression', [Portal\TrainingProgressController::class, 'store'])->middleware('throttle:30,1')->name('trainings.progress');
         Route::get('/modules/{publishedTraining}/documents/{document}', [Portal\TrainingDocumentController::class, 'show'])->name('trainings.documents.show');
+        Route::get('/profil', [Portal\ProfileController::class, 'show'])->name('profile.show');
+        Route::put('/profil/mot-de-passe', [Portal\ProfileController::class, 'updatePassword'])->middleware('throttle:10,1')->name('profile.password.update');
         Route::post('/deconnexion', [Portal\LoginController::class, 'destroy'])->name('logout');
     });
 });

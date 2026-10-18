@@ -181,6 +181,7 @@ return [
         'email' => 'courriel',
         'password_email' => 'courriel',
         'password' => 'mot de passe',
+        'current_password' => 'mot de passe actuel',
 
         'personal.primary_contact_name' => 'nom du contact primaire',
         'personal.primary_contact_phone' => 'téléphone du contact primaire',
