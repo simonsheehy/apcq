@@ -8,12 +8,11 @@ use App\Filament\Pages\TrainingReport\TrainingReportQuery;
 use App\Models\Cinema;
 use App\Models\Employee;
 use App\Models\Training;
+use App\Models\TrainingDocument;
 use App\Models\TrainingDocumentDownload;
 use App\Models\TrainingProgress;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use OpenSpout\Reader\XLSX\Reader;
 
@@ -98,10 +97,9 @@ it('searches employees by name or email', function () {
 });
 
 it('shows which documents each employee downloaded', function () {
-    Storage::fake('local');
-    $document = $this->audio->addMedia(UploadedFile::fake()->create('guide.pdf', 10))->toMediaCollection('documents');
-    $this->audio->addMedia(UploadedFile::fake()->create('fiche.pdf', 10))->toMediaCollection('documents');
-    TrainingDocumentDownload::record($this->julie, $this->audio, $document);
+    $document = TrainingDocument::factory()->for($this->audio)->create();
+    TrainingDocument::factory()->for($this->audio)->create();
+    TrainingDocumentDownload::record($this->julie, $document);
 
     $records = Livewire::test(TrainingReport::class)->instance()->getTableRecords();
 

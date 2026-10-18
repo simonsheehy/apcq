@@ -18,9 +18,9 @@ class TrainingController extends Controller
         return view('portal.trainings.show', [
             'training' => $training,
             'moduleNumber' => $moduleNumber,
-            'documents' => $training->getMedia('documents'),
+            'documents' => $training->documents()->with('media')->get(),
             'progress' => $training->progress()->whereBelongsTo($employee)->first(),
-            'downloadedDocumentIds' => $employee->documentDownloads()->where('training_id', $training->id)->pluck('media_id'),
+            'downloadedDocumentIds' => $employee->documentDownloads()->where('training_id', $training->id)->pluck('training_document_id'),
         ]);
     }
 }

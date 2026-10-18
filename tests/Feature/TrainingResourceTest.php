@@ -7,7 +7,9 @@ use App\Filament\Resources\Trainings\Pages\ListTrainings;
 use App\Models\Training;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -144,4 +146,59 @@ it('leaves the duration empty when vimeo does not answer', function () {
     $training->update(['vimeo_video_id' => '123', 'video_duration' => null]);
 
     expect($training->refresh()->video_duration)->toBeNull();
+});
+
+it('adds documents with a title, a description and a file', function () {
+    Storage::fake('local');
+    $training = Training::factory()->create();
+
+    Livewire::test(EditTraining::class, ['record' => $training->getRouteKey()])
+        ->fillForm([
+            'documents' => [
+                [
+                    'title' => 'Guide de vérification audio',
+                    'description' => 'À consulter avant chaque projection.',
+                    'file' => [UploadedFile::fake()->create('guide.pdf', 10, 'application/pdf')],
+                ],
+            ],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $document = $training->documents()->sole();
+
+    expect($document)
+        ->title->toBe('Guide de vérification audio')
+        ->description->toBe('À consulter avant chaque projection.')
+        ->and($document->file()?->file_name)->toBe('guide.pdf')
+        ->and($document->file()?->disk)->toBe('local');
+});
+
+it('requires a title and a file for each document', function () {
+    $training = Training::factory()->create();
+
+    Livewire::test(EditTraining::class, ['record' => $training->getRouteKey()])
+        ->fillForm(['documents' => [['title' => '', 'description' => 'Sans fichier']]])
+        ->call('save')
+        ->assertHasFormErrors(['documents.0.title' => 'required']);
+
+    expect($training->documents()->count())->toBe(0);
+});
+
+it('reorders trainings, which renumbers the modules in the portal', function () {
+    $audio = Training::factory()->create(['title' => 'Qualité audio', 'sort_order' => 1]);
+    $cleaning = Training::factory()->create(['title' => 'Propreté', 'sort_order' => 2]);
+    $sales = Training::factory()->create(['title' => 'Ventes additionnelles', 'sort_order' => 3]);
+
+    Livewire::test(ListTrainings::class)
+        ->call('toggleTableReordering')
+        ->assertSet('isTableReordering', true)
+        ->call('reorderTable', [(string) $sales->id, (string) $audio->id, (string) $cleaning->id])
+        ->assertCanSeeTableRecords([$sales, $audio, $cleaning], inOrder: true);
+
+    expect(Training::ordered()->pluck('title')->all())
+        ->toBe(['Ventes additionnelles', 'Qualité audio', 'Propreté']);
+
+    $this->get(route('portal.home'))
+        ->assertSeeInOrder(['Module 1', 'Ventes additionnelles', 'Module 2', 'Qualité audio', 'Module 3', 'Propreté']);
 });

@@ -4,24 +4,23 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Training;
+use App\Models\TrainingDocument;
 use App\Models\TrainingDocumentDownload;
 use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TrainingDocumentController extends Controller
 {
-    public function show(Request $request, Training $training, Media $document): StreamedResponse
+    public function show(Request $request, Training $training, TrainingDocument $document): StreamedResponse
     {
-        abort_unless(
-            $document->model_type === $training->getMorphClass()
-                && $document->model_id === $training->id
-                && $document->collection_name === 'documents',
-            404,
-        );
+        abort_unless($document->training_id === $training->id, 404);
 
-        TrainingDocumentDownload::record($request->user('employee'), $training, $document);
+        $file = $document->file();
 
-        return $document->toResponse($request);
+        abort_if($file === null, 404);
+
+        TrainingDocumentDownload::record($request->user('employee'), $document);
+
+        return $file->toResponse($request);
     }
 }

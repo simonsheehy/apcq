@@ -4,14 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class TrainingDocumentDownload extends Model
 {
     protected $fillable = [
         'employee_id',
         'training_id',
-        'media_id',
+        'training_document_id',
         'download_count',
         'first_downloaded_at',
         'last_downloaded_at',
@@ -36,18 +35,18 @@ class TrainingDocumentDownload extends Model
         return $this->belongsTo(Training::class);
     }
 
-    public function media(): BelongsTo
+    public function document(): BelongsTo
     {
-        return $this->belongsTo(Media::class);
+        return $this->belongsTo(TrainingDocument::class, 'training_document_id');
     }
 
-    public static function record(Employee $employee, Training $training, Media $document): self
+    public static function record(Employee $employee, TrainingDocument $document): self
     {
         $download = static::createOrFirst([
             'employee_id' => $employee->id,
-            'media_id' => $document->id,
+            'training_document_id' => $document->id,
         ], [
-            'training_id' => $training->id,
+            'training_id' => $document->training_id,
             'first_downloaded_at' => now(),
             'last_downloaded_at' => now(),
         ]);

@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Trainings\Schemas;
 
 use App\Enums\TrainingStatus;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
@@ -69,17 +71,36 @@ class TrainingForm
                                 ])
                                 ->columns(2),
                             Section::make('Documents complémentaires')
+                                ->description('Fichiers offerts aux employés sous la vidéo. L’ordre se change par glisser-déposer.')
                                 ->schema([
-                                    SpatieMediaLibraryFileUpload::make('documents')
+                                    Repeater::make('documents')
                                         ->hiddenLabel()
-                                        ->collection('documents')
-                                        ->disk('local')
-                                        ->visibility('private')
-                                        ->multiple()
-                                        ->reorderable()
-                                        ->downloadable()
-                                        ->preserveFilenames()
-                                        ->maxSize(20480),
+                                        ->relationship()
+                                        ->orderColumn('sort_order')
+                                        ->reorderableWithDragAndDrop()
+                                        ->collapsible()
+                                        ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
+                                        ->addActionLabel('Ajouter un document')
+                                        ->defaultItems(0)
+                                        ->schema([
+                                            TextInput::make('title')
+                                                ->label('Titre')
+                                                ->required()
+                                                ->maxLength(255),
+                                            Textarea::make('description')
+                                                ->label('Description')
+                                                ->rows(3)
+                                                ->maxLength(1000),
+                                            SpatieMediaLibraryFileUpload::make('file')
+                                                ->label('Fichier')
+                                                ->collection('file')
+                                                ->disk('local')
+                                                ->visibility('private')
+                                                ->downloadable()
+                                                ->preserveFilenames()
+                                                ->maxSize(20480)
+                                                ->required(),
+                                        ]),
                                 ]),
                         ])
                             ->columnSpan(['lg' => 9]),

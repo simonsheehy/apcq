@@ -4,7 +4,6 @@ namespace App\Filament\Pages\TrainingReport;
 
 use App\Enums\TrainingProgressStatus;
 use App\Enums\TrainingStatus;
-use App\Models\Training;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Carbon;
@@ -191,10 +190,8 @@ class TrainingReportQuery
 
     protected function documentsCount(): Builder
     {
-        return DB::table('media')
+        return DB::table('training_documents')
             ->selectRaw('COUNT(*)')
-            ->where('media.model_type', (new Training)->getMorphClass())
-            ->whereColumn('media.model_id', 'trainings.id')
-            ->where('media.collection_name', 'documents');
+            ->whereColumn('training_documents.training_id', 'trainings.id');
     }
 }

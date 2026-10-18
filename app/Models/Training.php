@@ -81,6 +81,11 @@ class Training extends Model implements HasMedia
         return $this->hasMany(TrainingProgress::class);
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(TrainingDocument::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     public function documentDownloads(): HasMany
     {
         return $this->hasMany(TrainingDocumentDownload::class);
@@ -110,9 +115,6 @@ class Training extends Model implements HasMedia
         $this->addMediaCollection('cover')
             ->singleFile()
             ->useDisk('public');
-
-        $this->addMediaCollection('documents')
-            ->useDisk('local');
     }
 
     public function registerMediaConversions(?Media $media = null): void

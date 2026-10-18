@@ -58,10 +58,15 @@
 
                 <ul class="mt-6 divide-y divide-white/10 rounded-2xl bg-white/5">
                     @foreach($documents as $document)
+                        @php($file = $document->file())
+                        @continue($file === null)
                         <li class="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
-                            <div class="min-w-0">
-                                <p class="truncate font-semibold">{{ $document->name }}</p>
-                                <p class="mt-1 text-xs uppercase text-white/50">{{ $document->extension }} · {{ $document->human_readable_size }}</p>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold">{{ $document->title }}</p>
+                                @if(filled($document->description))
+                                    <p class="mt-1 text-sm leading-relaxed text-white/75">{!! nl2br(e($document->description)) !!}</p>
+                                @endif
+                                <p class="mt-2 text-xs uppercase text-white/50">{{ $file->extension }} · {{ $file->human_readable_size }}</p>
                             </div>
 
                             <div class="flex items-center gap-4">

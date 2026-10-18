@@ -2,10 +2,10 @@
 
 use App\Models\Employee;
 use App\Models\Training;
+use App\Models\TrainingDocument;
 use App\Models\TrainingDocumentDownload;
 use App\Models\TrainingProgress;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -138,32 +138,55 @@ describe('documents', function () {
         Storage::fake('local');
     });
 
+    function documentUrl(Training $training, TrainingDocument $document): string
+    {
+        return route('portal.trainings.documents.show', ['publishedTraining' => $training->slug, 'document' => $document]);
+    }
+
+    it('lists documents in order with their description', function () {
+        $training = Training::factory()->create();
+        TrainingDocument::factory()->for($training)->withFile()->create([
+            'title' => 'Fiche de vérification',
+            'description' => "À imprimer.\nUne copie par salle.",
+            'sort_order' => 2,
+        ]);
+        TrainingDocument::factory()->for($training)->withFile()->create(['title' => 'Guide complet', 'sort_order' => 1]);
+
+        $this->get($training->portalUrl())
+            ->assertSeeInOrder(['Guide complet', 'Fiche de vérification'])
+            ->assertSee('À imprimer.<br />', escape: false)
+            ->assertSee('Une copie par salle.');
+    });
+
     it('downloads a document and records it for the employee', function () {
         $training = Training::factory()->create();
-        $document = $training->addMedia(UploadedFile::fake()->create('guide.pdf', 10, 'application/pdf'))
-            ->toMediaCollection('documents');
-        $url = route('portal.trainings.documents.show', ['publishedTraining' => $training->slug, 'document' => $document]);
+        $document = TrainingDocument::factory()->for($training)->withFile('guide.pdf')->create();
 
-        $this->get($url)->assertOk()->assertDownload('guide.pdf');
-        $this->get($url)->assertOk();
+        $this->get(documentUrl($training, $document))->assertOk()->assertDownload('guide.pdf');
+        $this->get(documentUrl($training, $document))->assertOk();
 
         expect(TrainingDocumentDownload::sole())
             ->employee_id->toBe($this->employee->id)
             ->training_id->toBe($training->id)
+            ->training_document_id->toBe($document->id)
             ->download_count->toBe(2);
 
         $this->get($training->portalUrl())->assertSee('✓ Téléchargé');
     });
 
-    it('refuses a file that is not a document of this training', function () {
+    it('refuses a document of another training', function () {
         $training = Training::factory()->create();
-        $otherTraining = Training::factory()->create();
-        $foreignDocument = $otherTraining->addMedia(UploadedFile::fake()->create('autre.pdf', 10))
-            ->toMediaCollection('documents');
+        $foreignDocument = TrainingDocument::factory()->withFile()->create();
 
-        $this->get(route('portal.trainings.documents.show', ['publishedTraining' => $training->slug, 'document' => $foreignDocument]))
-            ->assertNotFound();
+        $this->get(documentUrl($training, $foreignDocument))->assertNotFound();
 
         expect(TrainingDocumentDownload::count())->toBe(0);
+    });
+
+    it('refuses a document of an unpublished training', function () {
+        $training = Training::factory()->draft()->create();
+        $document = TrainingDocument::factory()->for($training)->withFile()->create();
+
+        $this->get(documentUrl($training, $document))->assertNotFound();
     });
 });
