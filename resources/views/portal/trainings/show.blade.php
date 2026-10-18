@@ -51,6 +51,12 @@
             <p class="mt-10 rounded-2xl bg-white/5 px-6 py-10 text-center text-white/70">La vidéo de cette formation sera bientôt disponible.</p>
         @endif
 
+        @if(filled($training->description))
+            <div class="prose prose-invert mt-12 max-w-none">
+                {!! str($training->description)->sanitizeHtml() !!}
+            </div>
+        @endif
+
         @if(filled($training->learning_test_url) || $documents->isNotEmpty())
             <section class="mt-14" aria-labelledby="practical-tools-heading">
                 <h2 id="practical-tools-heading" class="text-2xl font-bold tracking-tight">Pour aller plus loin – Outils pratiques</h2>
@@ -101,12 +107,6 @@
                     </ul>
                 @endif
             </section>
-        @endif
-
-        @if(filled($training->description))
-            <div class="prose prose-invert mt-12 max-w-none">
-                {!! str($training->description)->sanitizeHtml() !!}
-            </div>
         @endif
 
     </article>
