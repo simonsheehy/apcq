@@ -1,12 +1,14 @@
 /**
  * Tracks the portions of a Vimeo video actually watched and reports them to the server.
  *
- * Segments are [start, end] ranges in seconds. A segment closes whenever playback jumps
- * (seek or skip), so skipped portions are never counted. The full list is resent on every
- * report: the server merges it idempotently.
+ * Segments are [start, end] ranges in seconds. Playback only extends a segment when the video
+ * advanced no faster than real time at the current speed: any skip (seek, scrubbing, keyboard
+ * shortcuts) closes it, so skipped portions are never counted. The full list is resent on
+ * every report: the server merges it idempotently.
  */
 const REPORT_INTERVAL_MS = 10000;
-const MAX_CONTINUOUS_GAP_SECONDS = 2;
+const STEP_TOLERANCE_SECONDS = 0.25;
+const SEGMENT_TOLERANCE_SECONDS = 1;
 const RETRY_DELAY_MS = 10000;
 const SESSION_EXPIRED_STATUSES = [401, 419];
 
@@ -43,6 +45,9 @@ function initTrainingPlayer(container) {
     let duration = 0;
     let isPlaying = false;
     let hasUnsentProgress = false;
+    let playbackRate = 1;
+    let lastUpdateAt = null;
+    let segmentStartedAt = null;
 
     const closeSegment = () => {
         if (currentSegment && currentSegment[1] > currentSegment[0]) {
@@ -50,6 +55,24 @@ function initTrainingPlayer(container) {
         }
 
         currentSegment = null;
+        segmentStartedAt = null;
+    };
+
+    const startSegment = (seconds, now) => {
+        currentSegment = [seconds, seconds];
+        segmentStartedAt = now;
+    };
+
+    // Both checks are needed: the first catches a single jump, the second a series of small
+    // jumps (scrubbing) that would each look like normal playback.
+    const isNormalPlayback = (seconds, now, elapsedSeconds) => {
+        const advance = seconds - currentSegment[1];
+        const segmentLength = seconds - currentSegment[0];
+        const segmentElapsedSeconds = (now - segmentStartedAt) / 1000;
+
+        return advance >= 0
+            && advance <= elapsedSeconds * playbackRate + STEP_TOLERANCE_SECONDS
+            && segmentLength <= segmentElapsedSeconds * playbackRate + SEGMENT_TOLERANCE_SECONDS;
     };
 
     const updateProgressDisplay = ({ progress_percent: percent, completed }) => {
@@ -126,25 +149,33 @@ function initTrainingPlayer(container) {
     });
 
     player.on('timeupdate', ({ seconds }) => {
+        const now = performance.now();
+        const elapsedSeconds = lastUpdateAt === null ? 0 : (now - lastUpdateAt) / 1000;
+
         position = seconds;
+        lastUpdateAt = now;
 
         if (!isPlaying) {
             return;
         }
 
-        if (currentSegment === null) {
-            currentSegment = [seconds, seconds];
-        } else if (seconds >= currentSegment[1] && seconds - currentSegment[1] <= MAX_CONTINUOUS_GAP_SECONDS) {
+        if (currentSegment !== null && isNormalPlayback(seconds, now, elapsedSeconds)) {
             currentSegment[1] = seconds;
             hasUnsentProgress = true;
         } else {
             closeSegment();
-            currentSegment = [seconds, seconds];
+            startSegment(seconds, now);
         }
     });
 
     player.on('play', () => {
         isPlaying = true;
+        lastUpdateAt = performance.now();
+    });
+
+    player.on('playbackratechange', ({ playbackRate: rate }) => {
+        closeSegment();
+        playbackRate = rate;
     });
 
     player.on('seeking', () => closeSegment());

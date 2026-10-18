@@ -21,6 +21,24 @@ class Training extends Model implements HasMedia
 
     use InteractsWithMedia;
 
+    /**
+     * Keeps only the basic controls (play/pause, timeline, volume, subtitles, quality and
+     * fullscreen). Like, watch later and share buttons are not URL options: they are hidden in
+     * the video's embed settings on vimeo.com.
+     */
+    private const VIMEO_PLAYER_OPTIONS = [
+        'dnt' => 1,
+        'title' => 0,
+        'byline' => 0,
+        'portrait' => 0,
+        'vimeo_logo' => 0,
+        'speed' => 0,
+        'pip' => 0,
+        'airplay' => 0,
+        'chromecast' => 0,
+        'transcript' => 0,
+    ];
+
     protected $fillable = [
         'title',
         'slug',
@@ -107,7 +125,7 @@ class Training extends Model implements HasMedia
             return null;
         }
 
-        return "https://player.vimeo.com/video/{$this->vimeo_video_id}?dnt=1&title=0&byline=0&portrait=0";
+        return "https://player.vimeo.com/video/{$this->vimeo_video_id}?".http_build_query(self::VIMEO_PLAYER_OPTIONS);
     }
 
     public function registerMediaCollections(): void

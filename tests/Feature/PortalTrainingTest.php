@@ -28,7 +28,9 @@ describe('training page', function () {
         $this->get($training->portalUrl())
             ->assertOk()
             ->assertSee($training->title)
-            ->assertSee('https://player.vimeo.com/video/76979871', escape: false);
+            ->assertSee('https://player.vimeo.com/video/76979871?', escape: false)
+            ->assertSee('speed=0', escape: false)
+            ->assertSee('title=0', escape: false);
     });
 
     it('hides draft and archived trainings', function (string $state) {
