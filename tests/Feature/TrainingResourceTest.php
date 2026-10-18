@@ -224,3 +224,27 @@ it('allows reusing the numbers of an archived capsule or another module', functi
     'archived capsule, same module' => [1, 'archived'],
     'published capsule, other module' => [2, 'published'],
 ]);
+
+it('saves a learning test link', function () {
+    $training = Training::factory()->create();
+
+    Livewire::test(EditTraining::class, ['record' => $training->getRouteKey()])
+        ->fillForm(['learning_test_url' => 'https://forms.example.com/test-capsule-1'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($training->refresh()->learning_test_url)->toBe('https://forms.example.com/test-capsule-1');
+});
+
+it('only accepts secure web links for the learning test', function (string $link) {
+    $training = Training::factory()->create();
+
+    Livewire::test(EditTraining::class, ['record' => $training->getRouteKey()])
+        ->fillForm(['learning_test_url' => $link])
+        ->call('save')
+        ->assertHasFormErrors(['learning_test_url']);
+})->with([
+    'not a link' => 'test de la capsule',
+    'insecure link' => 'http://forms.example.com/test',
+    'script' => 'javascript:alert(1)',
+]);

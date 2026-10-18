@@ -136,6 +136,38 @@ describe('progress reporting', function () {
     });
 });
 
+describe('practical tools', function () {
+    beforeEach(function () {
+        Storage::fake('local');
+    });
+
+    it('offers the learning test under the video', function () {
+        $training = Training::factory()->create(['learning_test_url' => 'https://forms.example.com/test-capsule-1']);
+
+        $this->get($training->portalUrl())
+            ->assertSeeInOrder(['player.vimeo.com', 'Pour aller plus loin – Outils pratiques', 'Test d\'apprentissage', 'Faire le test'], escape: false)
+            ->assertSee('href="https://forms.example.com/test-capsule-1" target="_blank" rel="noopener noreferrer"', escape: false)
+            ->assertDontSee('Documents complémentaires');
+    });
+
+    it('shows the section with documents only', function () {
+        $training = Training::factory()->create(['learning_test_url' => null]);
+        TrainingDocument::factory()->for($training)->withFile()->create(['title' => 'Guide complet']);
+
+        $this->get($training->portalUrl())
+            ->assertSeeInOrder(['Pour aller plus loin – Outils pratiques', 'Documents complémentaires', 'Guide complet'])
+            ->assertDontSee('Faire le test');
+    });
+
+    it('hides the section when there is neither a test nor a document', function () {
+        $training = Training::factory()->create(['learning_test_url' => null]);
+
+        $this->get($training->portalUrl())
+            ->assertOk()
+            ->assertDontSee('Pour aller plus loin');
+    });
+});
+
 describe('documents', function () {
     beforeEach(function () {
         Storage::fake('local');

@@ -48,6 +48,7 @@ class Training extends Model implements HasMedia
         'description',
         'vimeo_video_id',
         'video_duration',
+        'learning_test_url',
         'status',
     ];
 

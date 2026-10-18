@@ -94,6 +94,19 @@ class TrainingForm
                                         ->suffix('s'),
                                 ])
                                 ->columns(2),
+                            Section::make('Test d’apprentissage')
+                                ->description('Questionnaire offert sous la vidéo, dans la section « Pour aller plus loin ».')
+                                ->schema([
+                                    TextInput::make('learning_test_url')
+                                        ->label('Lien vers le test')
+                                        ->placeholder('https://')
+                                        ->url()
+                                        ->startsWith(['https://'])
+                                        ->maxLength(2048)
+                                        ->validationMessages([
+                                            'starts_with' => 'Le lien doit commencer par https://.',
+                                        ]),
+                                ]),
                             Section::make('Documents complémentaires')
                                 ->description('Fichiers offerts aux employés sous la vidéo. L’ordre se change par glisser-déposer.')
                                 ->schema([
