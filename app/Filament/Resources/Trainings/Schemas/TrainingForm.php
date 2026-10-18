@@ -12,8 +12,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Unique;
 
 class TrainingForm
 {
@@ -39,6 +41,28 @@ class TrainingForm
                                         ->required()
                                         ->maxLength(255)
                                         ->unique(ignoreRecord: true),
+                                    TextInput::make('module_number')
+                                        ->label('Numéro de module')
+                                        ->required()
+                                        ->integer()
+                                        ->minValue(1)
+                                        ->maxValue(999),
+                                    TextInput::make('capsule_number')
+                                        ->label('Numéro de capsule')
+                                        ->helperText('Les formations sont classées par module, puis par capsule.')
+                                        ->required()
+                                        ->integer()
+                                        ->minValue(1)
+                                        ->maxValue(999)
+                                        ->unique(
+                                            ignoreRecord: true,
+                                            modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule
+                                                ->where('module_number', (int) $get('module_number'))
+                                                ->where(fn ($query) => $query->where('status', '!=', TrainingStatus::Archived->value)),
+                                        )
+                                        ->validationMessages([
+                                            'unique' => 'Une autre formation non archivée utilise déjà ce numéro de capsule dans ce module.',
+                                        ]),
                                     RichEditor::make('description')
                                         ->label('Description')
                                         ->toolbarButtons([

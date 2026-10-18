@@ -16,7 +16,7 @@
             Tous les modules
         </a>
 
-        <p class="mt-8 text-xs uppercase tracking-wide underline underline-offset-2">Module {{ $moduleNumber }}</p>
+        <p class="mt-8 text-xs uppercase tracking-wide underline underline-offset-2">{{ $training->number_label }}</p>
         <h1 class="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{{ $training->title }}</h1>
 
         @if($training->vimeoEmbedUrl())

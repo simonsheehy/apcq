@@ -3,16 +3,15 @@
 namespace App\Filament\Resources\Trainings\Tables;
 
 use App\Enums\TrainingStatus;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TrainingsTable
 {
@@ -25,6 +24,12 @@ class TrainingsTable
                     ->collection('cover')
                     ->conversion('card')
                     ->square(),
+                TextColumn::make('module_number')
+                    ->label('Module')
+                    ->sortable(),
+                TextColumn::make('capsule_number')
+                    ->label('Capsule')
+                    ->sortable(),
                 TextColumn::make('title')
                     ->label('Titre')
                     ->searchable(),
@@ -43,12 +48,7 @@ class TrainingsTable
                     ->dateTime('d/m/Y H:i')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->reorderable('sort_order')
-            ->reorderRecordsTriggerAction(fn (Action $action, bool $isReordering): Action => $action
-                ->button()
-                ->label($isReordering ? 'Terminer' : 'Réordonner les modules')
-                ->icon($isReordering ? Heroicon::OutlinedCheck : Heroicon::OutlinedArrowsUpDown))
-            ->defaultSort('sort_order')
+            ->defaultSort(fn (Builder $query): Builder => $query->orderBy('module_number')->orderBy('capsule_number'))
             ->filters([
                 SelectFilter::make('status')
                     ->label('Statut')

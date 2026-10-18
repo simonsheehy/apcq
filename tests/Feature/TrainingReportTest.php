@@ -24,8 +24,8 @@ beforeEach(function () {
     $this->cinema = Cinema::factory()->create(['name' => 'Cinéma Beloeil']);
     $this->otherCinema = Cinema::factory()->create(['name' => 'Cinéma Saguenay']);
 
-    $this->audio = Training::factory()->create(['title' => 'Qualité audio', 'sort_order' => 1]);
-    $this->cleaning = Training::factory()->create(['title' => 'Propreté', 'sort_order' => 2]);
+    $this->audio = Training::factory()->create(['title' => 'Qualité audio', 'module_number' => 1, 'capsule_number' => 1]);
+    $this->cleaning = Training::factory()->create(['title' => 'Propreté', 'module_number' => 1, 'capsule_number' => 2]);
     Training::factory()->draft()->create(['title' => 'Brouillon']);
 
     $this->julie = Employee::factory()->for($this->cinema)->create(['first_name' => 'Julie', 'last_name' => 'Tremblay']);
@@ -137,8 +137,8 @@ it('exports the filtered report and the summary to excel', function () {
     unlink($path);
 
     expect($sheets['Suivi'])->toHaveCount(3)
-        ->and($sheets['Suivi'][1])->toMatchArray([0 => 'Julie Tremblay', 3 => 'Qualité audio', 4 => 'Complétée', 5 => 100, 6 => '2026-10-01'])
-        ->and($sheets['Suivi'][2])->toMatchArray([3 => 'Propreté', 4 => 'En cours', 5 => 50])
+        ->and($sheets['Suivi'][1])->toMatchArray([0 => 'Julie Tremblay', 3 => 1, 4 => 1, 5 => 'Qualité audio', 6 => 'Complétée', 7 => 100, 8 => '2026-10-01'])
+        ->and($sheets['Suivi'][2])->toMatchArray([3 => 1, 4 => 2, 5 => 'Propreté', 6 => 'En cours', 7 => 50])
         ->and($sheets['Sommaire par cinéma'])->toHaveCount(2)
         ->and($sheets['Sommaire par cinéma'][1])->toBe(['Cinéma Beloeil', 1, 2, 1, 1, 50]);
 });

@@ -99,7 +99,7 @@
                                 </span>
                             @endif
                         </div>
-                        <p class="mt-3 text-xs uppercase tracking-wide underline underline-offset-2">Module {{ $loop->iteration }}</p>
+                        <p class="mt-3 text-xs uppercase tracking-wide underline underline-offset-2">{{ $training->number_label }}</p>
                         <h3 class="mt-1 text-sm font-semibold group-hover:text-apcq">{{ $training->title }}</h3>
                     </a>
                 @endforeach

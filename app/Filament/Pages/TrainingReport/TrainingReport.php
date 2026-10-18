@@ -83,6 +83,7 @@ class TrainingReport extends Page implements HasTable
                     ->sortable(),
                 TextColumn::make('training_title')
                     ->label('Formation')
+                    ->description(fn (array $record): string => "Module {$record['module_number']} · Capsule {$record['capsule_number']}")
                     ->sortable(),
                 TextColumn::make('status')
                     ->label('Statut')
@@ -118,7 +119,8 @@ class TrainingReport extends Page implements HasTable
                     ->options(fn (): array => Training::query()
                         ->whereIn('status', [TrainingStatus::Published, TrainingStatus::Archived])
                         ->ordered()
-                        ->pluck('title', 'id')
+                        ->get()
+                        ->mapWithKeys(fn (Training $training): array => [$training->id => "{$training->number_label} — {$training->title}"])
                         ->all())
                     ->placeholder('Toutes les formations publiées'),
                 SelectFilter::make('status')

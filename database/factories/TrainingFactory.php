@@ -28,8 +28,14 @@ class TrainingFactory extends Factory
             'vimeo_video_id' => (string) fake()->numberBetween(100000000, 999999999),
             'video_duration' => 600,
             'status' => TrainingStatus::Published,
-            'sort_order' => fake()->numberBetween(0, 50),
+            'module_number' => fake()->numberBetween(1, 20),
+            'capsule_number' => fake()->numberBetween(1, 5),
         ];
+    }
+
+    public function published(): static
+    {
+        return $this->state(fn (): array => ['status' => TrainingStatus::Published]);
     }
 
     public function draft(): static

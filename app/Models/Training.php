@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\TrainingStatus;
 use Database\Factories\TrainingFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -42,18 +43,20 @@ class Training extends Model implements HasMedia
     protected $fillable = [
         'title',
         'slug',
+        'module_number',
+        'capsule_number',
         'description',
         'vimeo_video_id',
         'video_duration',
         'status',
-        'sort_order',
     ];
 
     protected function casts(): array
     {
         return [
             'status' => TrainingStatus::class,
-            'sort_order' => 'integer',
+            'module_number' => 'integer',
+            'capsule_number' => 'integer',
             'video_duration' => 'integer',
         ];
     }
@@ -97,6 +100,14 @@ class Training extends Model implements HasMedia
     public function progress(): HasMany
     {
         return $this->hasMany(TrainingProgress::class);
+    }
+
+    /**
+     * E.g. "Module 1 · Capsule 2".
+     */
+    protected function numberLabel(): Attribute
+    {
+        return Attribute::get(fn (): string => "Module {$this->module_number} · Capsule {$this->capsule_number}");
     }
 
     public function documents(): HasMany
@@ -151,6 +162,6 @@ class Training extends Model implements HasMedia
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('id');
+        return $query->orderBy('module_number')->orderBy('capsule_number')->orderBy('id');
     }
 }

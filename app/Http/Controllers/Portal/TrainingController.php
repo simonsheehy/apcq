@@ -13,11 +13,8 @@ class TrainingController extends Controller
     {
         $employee = $request->user('employee');
 
-        $moduleNumber = Training::published()->ordered()->pluck('id')->search($training->id) + 1;
-
         return view('portal.trainings.show', [
             'training' => $training,
-            'moduleNumber' => $moduleNumber,
             'documents' => $training->documents()->with('media')->get(),
             'progress' => $training->progress()->whereBelongsTo($employee)->first(),
             'downloadedDocumentIds' => $employee->documentDownloads()->where('training_id', $training->id)->pluck('training_document_id'),

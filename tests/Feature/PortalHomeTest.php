@@ -11,15 +11,20 @@ beforeEach(function () {
     $this->actingAs(Employee::factory()->create(), 'employee');
 });
 
-it('lists only published trainings as numbered modules in order', function () {
-    Training::factory()->create(['title' => 'Qualité audio', 'sort_order' => 2]);
-    Training::factory()->create(['title' => 'Ventes additionnelles', 'sort_order' => 1]);
+it('lists only published trainings in module and capsule order', function () {
+    Training::factory()->create(['title' => 'Qualité audio', 'module_number' => 2, 'capsule_number' => 1]);
+    Training::factory()->create(['title' => 'Ventes additionnelles', 'module_number' => 1, 'capsule_number' => 2]);
+    Training::factory()->create(['title' => 'Intervenir sans escalader', 'module_number' => 1, 'capsule_number' => 1]);
     Training::factory()->draft()->create(['title' => 'Brouillon caché']);
     Training::factory()->archived()->create(['title' => 'Archive cachée']);
 
     $this->get(route('portal.home'))
         ->assertOk()
-        ->assertSeeInOrder(['Module 1', 'Ventes additionnelles', 'Module 2', 'Qualité audio'])
+        ->assertSeeInOrder([
+            'Module 1 · Capsule 1', 'Intervenir sans escalader',
+            'Module 1 · Capsule 2', 'Ventes additionnelles',
+            'Module 2 · Capsule 1', 'Qualité audio',
+        ])
         ->assertDontSee('Brouillon caché')
         ->assertDontSee('Archive cachée');
 });

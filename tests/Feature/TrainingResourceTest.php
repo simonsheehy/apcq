@@ -18,9 +18,9 @@ beforeEach(function () {
     $this->actingAs(User::factory()->create());
 });
 
-it('lists trainings ordered by sort order', function () {
-    $second = Training::factory()->create(['sort_order' => 2]);
-    $first = Training::factory()->draft()->create(['sort_order' => 1]);
+it('lists trainings by module, then capsule', function () {
+    $second = Training::factory()->create(['module_number' => 1, 'capsule_number' => 2]);
+    $first = Training::factory()->draft()->create(['module_number' => 1, 'capsule_number' => 1]);
 
     Livewire::test(ListTrainings::class)
         ->assertOk()
@@ -44,6 +44,8 @@ it('creates a training as draft by default', function () {
         ->fillForm([
             'title' => 'Gestion des salles',
             'slug' => 'gestion-des-salles',
+            'module_number' => 1,
+            'capsule_number' => 1,
             'vimeo_video_id' => '123456789',
         ])
         ->call('create')
@@ -61,6 +63,8 @@ it('extracts the vimeo id from a pasted url', function (string $input) {
         ->fillForm([
             'title' => 'Qualité audio',
             'slug' => 'qualite-audio',
+            'module_number' => 1,
+            'capsule_number' => 1,
             'vimeo_video_id' => $input,
         ])
         ->call('create')
@@ -79,6 +83,8 @@ it('rejects an invalid vimeo value', function () {
         ->fillForm([
             'title' => 'Propreté',
             'slug' => 'proprete',
+            'module_number' => 1,
+            'capsule_number' => 1,
             'vimeo_video_id' => 'https://youtube.com/watch?v=abc',
         ])
         ->call('create')
@@ -92,6 +98,8 @@ it('requires a unique slug', function () {
         ->fillForm([
             'title' => 'Propreté',
             'slug' => 'proprete',
+            'module_number' => 1,
+            'capsule_number' => 1,
         ])
         ->call('create')
         ->assertHasFormErrors(['slug' => 'unique']);
@@ -109,10 +117,10 @@ it('publishes a training', function () {
 });
 
 it('scopes published trainings in order', function () {
-    $second = Training::factory()->create(['sort_order' => 2]);
-    $first = Training::factory()->create(['sort_order' => 1]);
-    Training::factory()->draft()->create(['sort_order' => 0]);
-    Training::factory()->archived()->create(['sort_order' => 0]);
+    $second = Training::factory()->create(['module_number' => 2, 'capsule_number' => 1]);
+    $first = Training::factory()->create(['module_number' => 1, 'capsule_number' => 3]);
+    Training::factory()->draft()->create(['module_number' => 1, 'capsule_number' => 1]);
+    Training::factory()->archived()->create(['module_number' => 1, 'capsule_number' => 1]);
 
     expect(Training::published()->ordered()->pluck('id')->all())
         ->toBe([$first->id, $second->id]);
@@ -185,20 +193,34 @@ it('requires a title and a file for each document', function () {
     expect($training->documents()->count())->toBe(0);
 });
 
-it('reorders trainings, which renumbers the modules in the portal', function () {
-    $audio = Training::factory()->create(['title' => 'Qualité audio', 'sort_order' => 1]);
-    $cleaning = Training::factory()->create(['title' => 'Propreté', 'sort_order' => 2]);
-    $sales = Training::factory()->create(['title' => 'Ventes additionnelles', 'sort_order' => 3]);
+it('rejects a capsule number already used in the same module', function () {
+    Training::factory()->create(['module_number' => 1, 'capsule_number' => 1]);
 
-    Livewire::test(ListTrainings::class)
-        ->call('toggleTableReordering')
-        ->assertSet('isTableReordering', true)
-        ->call('reorderTable', [(string) $sales->id, (string) $audio->id, (string) $cleaning->id])
-        ->assertCanSeeTableRecords([$sales, $audio, $cleaning], inOrder: true);
-
-    expect(Training::ordered()->pluck('title')->all())
-        ->toBe(['Ventes additionnelles', 'Qualité audio', 'Propreté']);
-
-    $this->get(route('portal.home'))
-        ->assertSeeInOrder(['Module 1', 'Ventes additionnelles', 'Module 2', 'Qualité audio', 'Module 3', 'Propreté']);
+    Livewire::test(CreateTraining::class)
+        ->fillForm([
+            'title' => 'Doublon',
+            'slug' => 'doublon',
+            'module_number' => 1,
+            'capsule_number' => 1,
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['capsule_number' => 'unique']);
 });
+
+it('allows reusing the numbers of an archived capsule or another module', function (int $moduleNumber, string $state) {
+    Http::fake(['vimeo.com/*' => Http::response(['duration' => 600])]);
+    Training::factory()->{$state}()->create(['module_number' => 1, 'capsule_number' => 1]);
+
+    Livewire::test(CreateTraining::class)
+        ->fillForm([
+            'title' => 'Nouvelle capsule',
+            'slug' => 'nouvelle-capsule',
+            'module_number' => $moduleNumber,
+            'capsule_number' => 1,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+})->with([
+    'archived capsule, same module' => [1, 'archived'],
+    'published capsule, other module' => [2, 'published'],
+]);

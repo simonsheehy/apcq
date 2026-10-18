@@ -15,14 +15,14 @@ use Illuminate\Support\Facades\DB;
  * trainings the employee has not started yet.
  *
  * @phpstan-type ReportFilters array{cinema_id?: int|string|null, training_id?: int|string|null, status?: string|null, include_deactivated?: bool, search?: string|null}
- * @phpstan-type ReportRow array{key: string, employee_id: int, employee_name: string, employee_email: string, cinema_id: int, cinema_name: string, training_id: int, training_title: string, status: TrainingProgressStatus, progress_percent: int, completed_at: ?Carbon, last_activity_at: ?Carbon, downloaded_documents_count: int, documents_count: int}
+ * @phpstan-type ReportRow array{key: string, employee_id: int, employee_name: string, employee_email: string, cinema_id: int, cinema_name: string, training_id: int, training_title: string, module_number: int, capsule_number: int, status: TrainingProgressStatus, progress_percent: int, completed_at: ?Carbon, last_activity_at: ?Carbon, downloaded_documents_count: int, documents_count: int}
  */
 class TrainingReportQuery
 {
     public const SORTABLE_COLUMNS = [
         'employee_name' => ['employees.last_name', 'employees.first_name'],
         'cinema_name' => ['cinemas.name'],
-        'training_title' => ['trainings.sort_order'],
+        'training_title' => ['trainings.module_number', 'trainings.capsule_number'],
         'progress_percent' => ['progress_ratio'],
         'completed_at' => ['training_progress.completed_at'],
         'last_activity_at' => ['training_progress.updated_at'],
@@ -43,6 +43,8 @@ class TrainingReportQuery
                 'cinemas.name as cinema_name',
                 'trainings.id as training_id',
                 'trainings.title as training_title',
+                'trainings.module_number',
+                'trainings.capsule_number',
                 'training_progress.id as progress_id',
                 'training_progress.watched_seconds',
                 'training_progress.video_duration',
@@ -67,7 +69,8 @@ class TrainingReportQuery
             ->orderBy('cinemas.name')
             ->orderBy('employees.last_name')
             ->orderBy('employees.first_name')
-            ->orderBy('trainings.sort_order')
+            ->orderBy('trainings.module_number')
+            ->orderBy('trainings.capsule_number')
             ->orderBy('trainings.id');
     }
 
@@ -121,6 +124,8 @@ class TrainingReportQuery
             'cinema_name' => $row->cinema_name,
             'training_id' => (int) $row->training_id,
             'training_title' => $row->training_title,
+            'module_number' => (int) $row->module_number,
+            'capsule_number' => (int) $row->capsule_number,
             'status' => $status,
             'progress_percent' => (int) min(100, floor($row->progress_ratio * 100)),
             'completed_at' => $row->completed_at ? Carbon::parse($row->completed_at) : null,
