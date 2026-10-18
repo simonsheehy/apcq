@@ -1,6 +1,9 @@
 /**
  * Tracks the portions of a Vimeo video actually watched and reports them to the server.
  *
+ * The employee cannot skip ahead: going past the furthest point watched without gaps sends the
+ * video back there. Going back is always allowed.
+ *
  * Segments are [start, end] ranges in seconds. Playback only extends a segment when the video
  * advanced no faster than real time at the current speed: any skip (seek, scrubbing, keyboard
  * shortcuts) closes it, so skipped portions are never counted. The full list is resent on
@@ -9,6 +12,8 @@
 const REPORT_INTERVAL_MS = 10000;
 const STEP_TOLERANCE_SECONDS = 0.25;
 const SEGMENT_TOLERANCE_SECONDS = 1;
+const FORWARD_TOLERANCE_SECONDS = 1.5;
+const SKIP_NOTICE_DURATION_MS = 4000;
 const RETRY_DELAY_MS = 10000;
 const SESSION_EXPIRED_STATUSES = [401, 419];
 
@@ -29,17 +34,35 @@ function mergeSegments(segments) {
     return merged;
 }
 
+/**
+ * End of the portion watched without gaps from the start of the video.
+ */
+function contiguousEnd(segments) {
+    let end = 0;
+
+    for (const [start, segmentEnd] of mergeSegments(segments)) {
+        if (start > end + 1) {
+            break;
+        }
+
+        end = Math.max(end, segmentEnd);
+    }
+
+    return end;
+}
+
 function initTrainingPlayer(container) {
     const iframe = container.querySelector('iframe');
     const progressUrl = container.dataset.progressUrl;
     const resumePosition = Number(container.dataset.resumePosition || 0);
     const progressBar = document.querySelector('[data-progress-bar]');
     const progressLabel = document.querySelector('[data-progress-label]');
+    const skipNotice = document.querySelector('[data-skip-notice]');
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
     const player = new window.Vimeo.Player(iframe);
 
-    let closedSegments = [];
+    let closedSegments = mergeSegments(JSON.parse(container.dataset.watchedSegments || '[]'));
     let currentSegment = null;
     let position = 0;
     let duration = 0;
@@ -73,6 +96,36 @@ function initTrainingPlayer(container) {
         return advance >= 0
             && advance <= elapsedSeconds * playbackRate + STEP_TOLERANCE_SECONDS
             && segmentLength <= segmentElapsedSeconds * playbackRate + SEGMENT_TOLERANCE_SECONDS;
+    };
+
+    const furthestAllowedPosition = () => contiguousEnd(currentSegment ? [...closedSegments, currentSegment] : closedSegments);
+
+    let skipNoticeTimeout = null;
+
+    const showSkipNotice = () => {
+        if (!skipNotice) {
+            return;
+        }
+
+        skipNotice.hidden = false;
+        clearTimeout(skipNoticeTimeout);
+        skipNoticeTimeout = setTimeout(() => {
+            skipNotice.hidden = true;
+        }, SKIP_NOTICE_DURATION_MS);
+    };
+
+    const sendBackIfSkippedAhead = (seconds) => {
+        const limit = furthestAllowedPosition();
+
+        if (seconds <= limit + FORWARD_TOLERANCE_SECONDS) {
+            return false;
+        }
+
+        position = limit;
+        player.setCurrentTime(limit);
+        showSkipNotice();
+
+        return true;
     };
 
     const updateProgressDisplay = ({ progress_percent: percent, completed }) => {
@@ -143,8 +196,10 @@ function initTrainingPlayer(container) {
     player.getDuration().then((value) => {
         duration = value;
 
-        if (resumePosition > 5 && resumePosition < duration - 5) {
-            player.setCurrentTime(resumePosition);
+        const startPosition = Math.min(resumePosition, furthestAllowedPosition());
+
+        if (startPosition > 5 && startPosition < duration - 5) {
+            player.setCurrentTime(startPosition);
         }
     });
 
@@ -162,8 +217,13 @@ function initTrainingPlayer(container) {
         if (currentSegment !== null && isNormalPlayback(seconds, now, elapsedSeconds)) {
             currentSegment[1] = seconds;
             hasUnsentProgress = true;
-        } else {
-            closeSegment();
+
+            return;
+        }
+
+        closeSegment();
+
+        if (!sendBackIfSkippedAhead(seconds)) {
             startSegment(seconds, now);
         }
     });
@@ -179,6 +239,10 @@ function initTrainingPlayer(container) {
     });
 
     player.on('seeking', () => closeSegment());
+
+    player.on('seeked', ({ seconds }) => {
+        sendBackIfSkippedAhead(seconds);
+    });
 
     player.on('pause', () => {
         isPlaying = false;

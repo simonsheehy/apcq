@@ -52,6 +52,7 @@ describe('training page', function () {
 
         $this->get($training->portalUrl())
             ->assertSee('data-resume-position="245"', escape: false)
+            ->assertSee('data-watched-segments="[[0,120]]"', escape: false)
             ->assertSee('20 % visionné');
     });
 

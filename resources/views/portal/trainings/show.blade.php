@@ -25,6 +25,7 @@
                 data-training-player
                 data-progress-url="{{ route('portal.trainings.progress', ['publishedTraining' => $training->slug]) }}"
                 data-resume-position="{{ $progress?->last_position ?? 0 }}"
+                data-watched-segments="{{ json_encode($progress?->watched_segments ?? []) }}"
             >
                 <iframe
                     src="{{ $training->vimeoEmbedUrl() }}"
@@ -42,6 +43,10 @@
                     {{ $isCompleted ? 'Formation complétée' : $progressPercent.' % visionné' }}
                 </p>
             </div>
+
+            <p class="mt-3 rounded-xl bg-apcq/15 px-4 py-2 text-sm text-apcq" role="status" data-skip-notice hidden>
+                La vidéo doit être visionnée en entier : vous pouvez revenir en arrière, mais pas avancer au-delà de ce que vous avez déjà vu.
+            </p>
         @else
             <p class="mt-10 rounded-2xl bg-white/5 px-6 py-10 text-center text-white/70">La vidéo de cette formation sera bientôt disponible.</p>
         @endif
