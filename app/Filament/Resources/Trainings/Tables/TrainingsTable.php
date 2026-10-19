@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Trainings\Tables;
 
 use App\Enums\TrainingStatus;
+use App\Models\Training;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -24,6 +26,9 @@ class TrainingsTable
                     ->collection('cover')
                     ->conversion('card')
                     ->square(),
+                ColorColumn::make('card_color')
+                    ->label('Couleur')
+                    ->state(fn (Training $record): ?string => $record->card_color?->hex()),
                 TextColumn::make('module_number')
                     ->label('Module')
                     ->sortable(),

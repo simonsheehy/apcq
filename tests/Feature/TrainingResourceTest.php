@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TrainingCardColor;
 use App\Enums\TrainingStatus;
 use App\Filament\Resources\Trainings\Pages\CreateTraining;
 use App\Filament\Resources\Trainings\Pages\EditTraining;
@@ -248,3 +249,23 @@ it('only accepts secure web links for the learning test', function (string $link
     'insecure link' => 'http://forms.example.com/test',
     'script' => 'javascript:alert(1)',
 ]);
+
+it('saves the card background color', function () {
+    $training = Training::factory()->create(['card_color' => null]);
+
+    Livewire::test(EditTraining::class, ['record' => $training->getRouteKey()])
+        ->fillForm(['card_color' => TrainingCardColor::Lime->value])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($training->refresh()->card_color)->toBe(TrainingCardColor::Lime);
+});
+
+it('only accepts colors from the palette', function () {
+    $training = Training::factory()->create();
+
+    Livewire::test(EditTraining::class, ['record' => $training->getRouteKey()])
+        ->fillForm(['card_color' => '#000000'])
+        ->call('save')
+        ->assertHasFormErrors(['card_color']);
+});

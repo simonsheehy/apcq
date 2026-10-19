@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TrainingCardColor;
 use App\Models\Employee;
 use App\Models\SiteSetting;
 use App\Models\Training;
@@ -41,4 +42,15 @@ it('shows the contact email from the site settings', function () {
     $this->get(route('portal.home'))
         ->assertOk()
         ->assertSee('mailto:formation@apcq.ca', escape: false);
+});
+
+it('uses the background color chosen for each card', function () {
+    Training::factory()->create(['module_number' => 1, 'capsule_number' => 1, 'card_color' => TrainingCardColor::Coral]);
+    Training::factory()->create(['module_number' => 1, 'capsule_number' => 2, 'card_color' => null]);
+
+    $this->get(route('portal.home'))
+        ->assertSeeInOrder([
+            'background-color: '.TrainingCardColor::Coral->hex(),
+            'background-color: '.TrainingCardColor::fallbackForPosition(1)->hex(),
+        ], escape: false);
 });

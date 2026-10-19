@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Trainings\Schemas;
 
+use App\Enums\TrainingCardColor;
 use App\Enums\TrainingStatus;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -151,8 +152,16 @@ class TrainingForm
                                         ->required(),
                                 ])
                                 ->columns(1),
-                            Section::make('Image')
+                            Section::make('Vignette')
+                                ->description('Carte affichée sur l’accueil du portail.')
                                 ->schema([
+                                    Select::make('card_color')
+                                        ->label('Couleur de fond')
+                                        ->options(TrainingCardColor::swatchOptions())
+                                        ->allowHtml()
+                                        ->native(false)
+                                        ->placeholder('Automatique')
+                                        ->helperText('Visible autour de l’image ou à sa place s’il n’y en a pas.'),
                                     SpatieMediaLibraryFileUpload::make('cover')
                                         ->label('Image de la carte')
                                         ->collection('cover')

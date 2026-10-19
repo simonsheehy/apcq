@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TrainingCardColor;
 use App\Enums\TrainingStatus;
 use Database\Factories\TrainingFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,12 +51,14 @@ class Training extends Model implements HasMedia
         'video_duration',
         'learning_test_url',
         'status',
+        'card_color',
     ];
 
     protected function casts(): array
     {
         return [
             'status' => TrainingStatus::class,
+            'card_color' => TrainingCardColor::class,
             'module_number' => 'integer',
             'capsule_number' => 'integer',
             'video_duration' => 'integer',

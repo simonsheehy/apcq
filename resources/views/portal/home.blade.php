@@ -1,10 +1,10 @@
+@use('App\Enums\TrainingCardColor')
+
 @extends('layouts.portal')
 
 @section('title', 'Centre d’expertise')
 
 @php
-    $moduleColors = ['bg-portal-cyan', 'bg-portal-yellow', 'bg-portal-mist', 'bg-portal-mist', 'bg-portal-cyan', 'bg-portal-yellow'];
-
     $trainingApproaches = [
         [
             'title' => 'Matériel à votre rythme',
@@ -76,7 +76,8 @@
                 @foreach($trainings as $training)
                     @php($progress = $progressByTraining->get($training->id))
                     <a href="{{ $training->portalUrl() }}" class="group block">
-                        <div class="{{ $moduleColors[$loop->index % count($moduleColors)] }} relative aspect-[16/8] overflow-hidden rounded-xl">
+                        @php($cardColor = $training->card_color ?? TrainingCardColor::fallbackForPosition($loop->index))
+                        <div class="relative aspect-[16/8] overflow-hidden rounded-xl" style="background-color: {{ $cardColor->hex() }}">
                             @if($training->hasMedia('cover'))
                                 <img src="{{ $training->getFirstMediaUrl('cover', 'card') }}" alt="" class="size-full object-cover transition duration-300 group-hover:scale-105">
                             @endif
