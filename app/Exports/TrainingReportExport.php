@@ -19,10 +19,10 @@ class TrainingReportExport
     /**
      * @param  array<string, mixed>  $filters
      */
-    public function download(array $filters = [], ?string $sortColumn = null, ?string $sortDirection = null): BinaryFileResponse
+    public function download(array $filters = [], ?string $sortColumn = null, ?string $sortDirection = null, ?string $fileName = null): BinaryFileResponse
     {
         $path = $this->writeToTemp($filters, $sortColumn, $sortDirection);
-        $fileName = 'rapport-formations-'.now()->timezone('America/Toronto')->format('Y-m-d').'.xlsx';
+        $fileName ??= 'rapport-formations-'.now()->timezone('America/Toronto')->format('Y-m-d').'.xlsx';
 
         return response()
             ->download($path, $fileName, [

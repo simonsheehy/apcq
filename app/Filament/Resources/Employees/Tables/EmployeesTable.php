@@ -14,8 +14,10 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -38,6 +40,12 @@ class EmployeesTable
                     ->label('Cinéma')
                     ->searchable()
                     ->sortable(),
+                IconColumn::make('is_cinema_admin')
+                    ->label('Admin. cinéma')
+                    ->boolean()
+                    ->trueIcon(Heroicon::OutlinedShieldCheck)
+                    ->trueColor('primary')
+                    ->falseColor('gray'),
                 TextColumn::make('status')
                     ->label('Statut')
                     ->badge(),
@@ -60,6 +68,8 @@ class EmployeesTable
                     ->relationship('cinema', 'name')
                     ->searchable()
                     ->preload(),
+                TernaryFilter::make('is_cinema_admin')
+                    ->label('Administrateur de cinéma'),
                 SelectFilter::make('status')
                     ->label('Statut')
                     ->options(EmployeeStatus::class)

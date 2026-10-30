@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  * Builds the training follow-up report: one row per employee and training, including
  * trainings the employee has not started yet.
  *
- * @phpstan-type ReportFilters array{cinema_id?: int|string|null, training_id?: int|string|null, status?: string|null, include_deactivated?: bool, search?: string|null}
+ * @phpstan-type ReportFilters array{cinema_id?: int|string|null, employee_id?: int|string|null, training_id?: int|string|null, status?: string|null, include_deactivated?: bool, search?: string|null}
  * @phpstan-type ReportRow array{key: string, employee_id: int, employee_name: string, employee_email: string, cinema_id: int, cinema_name: string, training_id: int, training_title: string, module_number: int, capsule_number: int, status: TrainingProgressStatus, progress_percent: int, completed_at: ?Carbon, last_activity_at: ?Carbon, downloaded_documents_count: int, documents_count: int}
  */
 class TrainingReportQuery
@@ -159,6 +159,10 @@ class TrainingReportQuery
 
         if (filled($cinemaId = $filters['cinema_id'] ?? null)) {
             $query->where('cinemas.id', $cinemaId);
+        }
+
+        if (filled($employeeId = $filters['employee_id'] ?? null)) {
+            $query->where('employees.id', $employeeId);
         }
 
         if (! ($filters['include_deactivated'] ?? false)) {

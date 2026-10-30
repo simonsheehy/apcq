@@ -30,6 +30,7 @@ class Employee extends Authenticatable
         'first_name',
         'last_name',
         'email',
+        'is_cinema_admin',
         'password',
         'invited_at',
         'invitation_accepted_at',
@@ -47,6 +48,7 @@ class Employee extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'is_cinema_admin' => 'boolean',
             'invited_at' => 'datetime',
             'invitation_accepted_at' => 'datetime',
             'deactivated_at' => 'datetime',
@@ -117,6 +119,22 @@ class Employee extends Authenticatable
     public function canAccessCinema(): bool
     {
         return $this->cinema !== null;
+    }
+
+    public function isCinemaAdmin(): bool
+    {
+        return $this->is_cinema_admin && $this->canLogIn();
+    }
+
+    /**
+     * A cinema administrator manages the other employees of their own cinema, never themselves
+     * (they cannot deactivate their own access).
+     */
+    public function canManage(Employee $employee): bool
+    {
+        return $this->isCinemaAdmin()
+            && $employee->cinema_id === $this->cinema_id
+            && ! $employee->is($this);
     }
 
     public function canLogIn(): bool

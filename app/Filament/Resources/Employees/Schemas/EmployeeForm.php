@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Employees\Schemas;
 
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -38,6 +39,10 @@ class EmployeeForm
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
+                            ->columnSpanFull(),
+                        Checkbox::make('is_cinema_admin')
+                            ->label('Administrateur de ce cinéma')
+                            ->helperText('Dans le portail, il peut inviter et gérer les employés de son cinéma, suivre leur progression et télécharger le rapport du cinéma.')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),

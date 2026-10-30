@@ -166,3 +166,14 @@ describe('login link for administrators', function () {
         expect($employee->refresh()->login_token_hash)->not->toBeNull();
     });
 });
+
+it('marks an employee as administrator of their cinema', function () {
+    $employee = Employee::factory()->create();
+
+    Livewire::test(EditEmployee::class, ['record' => $employee->getRouteKey()])
+        ->fillForm(['is_cinema_admin' => true])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($employee->refresh()->is_cinema_admin)->toBeTrue();
+});

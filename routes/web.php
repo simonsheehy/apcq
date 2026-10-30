@@ -11,6 +11,7 @@ use App\Http\Controllers\Portal;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Middleware\EnsureEmployeeIsActive;
+use App\Http\Middleware\EnsureEmployeeIsCinemaAdmin;
 use App\Livewire\CinemaValidation;
 use Illuminate\Support\Facades\Route;
 
@@ -57,5 +58,19 @@ Route::prefix('formation')->name('portal.')->group(function (): void {
         Route::get('/profil', [Portal\ProfileController::class, 'show'])->name('profile.show');
         Route::put('/profil/mot-de-passe', [Portal\ProfileController::class, 'updatePassword'])->middleware('throttle:10,1')->name('profile.password.update');
         Route::post('/deconnexion', [Portal\LoginController::class, 'destroy'])->name('logout');
+
+        Route::prefix('mon-cinema')->name('cinema.')->middleware(EnsureEmployeeIsCinemaAdmin::class)->group(function (): void {
+            Route::get('/', [Portal\CinemaEmployeeController::class, 'index'])->name('employees.index');
+            Route::get('/rapport', Portal\CinemaReportController::class)->name('report');
+            Route::get('/employes/ajouter', [Portal\CinemaEmployeeController::class, 'create'])->name('employees.create');
+            Route::post('/employes', [Portal\CinemaEmployeeController::class, 'store'])->middleware('throttle:20,1')->name('employees.store');
+            Route::get('/employes/{employee}', [Portal\CinemaEmployeeController::class, 'show'])->name('employees.show');
+            Route::get('/employes/{employee}/modifier', [Portal\CinemaEmployeeController::class, 'edit'])->name('employees.edit');
+            Route::put('/employes/{employee}', [Portal\CinemaEmployeeController::class, 'update'])->middleware('throttle:20,1')->name('employees.update');
+            Route::post('/employes/{employee}/desactiver', [Portal\CinemaEmployeeController::class, 'deactivate'])->name('employees.deactivate');
+            Route::post('/employes/{employee}/reactiver', [Portal\CinemaEmployeeController::class, 'reactivate'])->name('employees.reactivate');
+            Route::delete('/employes/{employee}', [Portal\CinemaEmployeeController::class, 'destroy'])->middleware('throttle:20,1')->name('employees.destroy');
+            Route::post('/employes/{employee}/invitation', [Portal\CinemaEmployeeController::class, 'resendInvitation'])->middleware('throttle:10,1')->name('employees.resend-invitation');
+        });
     });
 });
